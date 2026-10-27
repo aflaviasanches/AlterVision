@@ -1,0 +1,1389 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Painel Rahra · AlterVision</title></head><body>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Concept: painel de bordo para decisão de rede. Cabeçalho fixo com filtros, uma seção por pergunta de gestão,
+   cada seção é só o nome e os dados (gráficos e tabelas), sem texto corrido. */
+:root{
+  --bg:#f6f3f5; --surface:#ffffff; --surface-2:#faf7f9; --ink:#1e1519; --ink-2:#554a50; --muted:#857a80;
+  --line:#e8e1e5; --grid:#eee8eb; --axis:#cdc3c9;
+  --brand:#9F1957; --brand-2:#BD386E; --brand-soft:#f8e8f0; --brand-ink:#7d1346; --on-brand:#ffffff;
+  --good:#0ca30c; --good-ink:#0a6e0a; --good-soft:#e6f5e6;
+  --warn:#fab219; --warn-ink:#8a5a00; --warn-soft:#fdf2d6;
+  --serious:#ec835a;
+  --crit:#d03b3b; --crit-ink:#b02a2a; --crit-soft:#fbe7e7;
+  --s1:#9F1957; --s2:#2a78d6; --s3:#1baf7a; --s4:#eb6834;
+  --heat:#9F1957;
+  --shadow:0 1px 2px rgba(30,21,25,.06),0 6px 20px rgba(30,21,25,.04);
+  --fd:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --fb:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121011; --surface:#1b1618; --surface-2:#221c1f; --ink:#f4eff2; --ink-2:#cbbfc5; --muted:#978b92;
+    --line:#302a2d; --grid:#2a2427; --axis:#463d42;
+    --brand:#d4558c; --brand-2:#e07aa6; --brand-soft:#35172a; --brand-ink:#f0a3c4; --on-brand:#1b1618;
+    --good-ink:#4fd44f; --good-soft:#12301a; --warn-ink:#fab219; --warn-soft:#352a0b; --crit-ink:#ff8080; --crit-soft:#3a1717;
+    --s1:#d4558c; --s2:#3987e5; --s3:#199e70; --s4:#d95926; --heat:#c7447c;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121011; --surface:#1b1618; --surface-2:#221c1f; --ink:#f4eff2; --ink-2:#cbbfc5; --muted:#978b92;
+  --line:#302a2d; --grid:#2a2427; --axis:#463d42;
+  --brand:#d4558c; --brand-2:#e07aa6; --brand-soft:#35172a; --brand-ink:#f0a3c4; --on-brand:#1b1618;
+  --good-ink:#4fd44f; --good-soft:#12301a; --warn-ink:#fab219; --warn-soft:#352a0b; --crit-ink:#ff8080; --crit-soft:#3a1717;
+  --s1:#d4558c; --s2:#3987e5; --s3:#199e70; --s4:#d95926; --heat:#c7447c;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:150px}
+body{background:var(--bg);color:var(--ink);font-family:var(--fb);font-size:14px;line-height:1.5;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--surface)}
+h1,h2,h3{font-family:var(--fd);margin:0;text-wrap:balance;letter-spacing:-.01em}
+p{margin:0}
+button,select,input{font-family:inherit;font-size:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;flex-direction:column;gap:10px;padding-block:12px 0}
+.top-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;justify-content:space-between}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+.brand h1{font-size:20px;font-weight:700;color:var(--brand);white-space:nowrap}
+.brand .sub{color:var(--muted);font-size:12px}
+.filters{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.fgroup{display:flex;align-items:center;gap:8px}
+.flabel{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);padding:2px;gap:2px}
+.seg button{border:0;background:transparent;padding:5px 12px;border-radius:6px;cursor:pointer;color:var(--ink-2);font-weight:500;min-height:30px}
+.seg button:hover{background:var(--grid)}
+.seg button[aria-pressed="true"]{background:var(--brand);color:var(--on-brand)}
+select.sel{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:5px 28px 5px 10px;min-height:34px;cursor:pointer;max-width:100%}
+.nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:thin;margin-inline:-4px;padding-bottom:0}
+.nav a{padding:8px 10px;color:var(--ink-2);text-decoration:none;font-weight:500;font-size:13px;white-space:nowrap;border-bottom:2px solid transparent}
+.nav a:hover{color:var(--brand)}
+.nav a.on{color:var(--brand);border-bottom-color:var(--brand)}
+
+/* sections */
+main{padding-block:20px 60px;display:flex;flex-direction:column;gap:36px}
+section{display:flex;flex-direction:column;gap:14px;min-width:0}
+.sh{display:flex;flex-direction:column;gap:4px;max-width:78ch}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);font-weight:600}
+.sh h2{font-size:24px;line-height:1.2;font-weight:700}
+.sh h2 small{font-family:var(--fb);font-size:13px;font-weight:500;color:var(--muted);margin-left:10px;letter-spacing:0}
+.sh p{color:var(--ink-2)}
+.grid{display:grid;gap:14px;min-width:0}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+.card.flat{box-shadow:none}
+.ch{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.ch h3{font-size:15px;font-weight:600;font-family:var(--fb);letter-spacing:0}
+.ch .hint{color:var(--muted);font-size:12px;margin-top:2px}
+.tbtn{border:1px solid var(--line);background:var(--surface-2);border-radius:6px;padding:3px 9px;cursor:pointer;font-size:12px;color:var(--ink-2);white-space:nowrap;min-height:28px}
+.tbtn:hover{border-color:var(--brand);color:var(--brand)}
+.tbtn[aria-pressed="true"]{background:var(--brand-soft);color:var(--brand-ink);border-color:var(--brand)}
+.chartbox{width:100%;min-width:0;position:relative}
+.chartbox svg{display:block;max-width:100%}
+.tw{overflow-x:auto;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--ink-2)}
+.legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.legend i.sq{height:10px;width:10px;border-radius:2px}
+.note{font-size:12px;color:var(--muted);max-width:90ch}
+.note b{color:var(--ink-2);font-weight:600}
+
+/* kpi tiles */
+.kpis{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0;box-shadow:var(--shadow)}
+.tile .lab{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.tile .val{font-family:var(--fd);font-size:28px;font-weight:700;line-height:1.1;letter-spacing:-.02em;margin-top:2px}
+.tile .val small{font-size:14px;font-weight:600;color:var(--ink-2);margin-left:2px}
+.tile .sub{font-size:12px;color:var(--muted)}
+.tile svg{margin-top:4px}
+.dl{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;white-space:nowrap}
+.dl.up{color:var(--good-ink)} .dl.dn{color:var(--crit-ink)} .dl.fl{color:var(--muted)}
+
+/* pills and dots */
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;white-space:nowrap;line-height:1.5}
+.pill.g{background:var(--good-soft);color:var(--good-ink)}
+.pill.y{background:var(--warn-soft);color:var(--warn-ink)}
+.pill.r{background:var(--crit-soft);color:var(--crit-ink)}
+.pill.n{background:var(--grid);color:var(--ink-2)}
+.pill.b{background:var(--brand-soft);color:var(--brand-ink)}
+
+/* tables */
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:var(--surface-2);position:sticky;top:0}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--brand)}
+th[aria-sort="ascending"]::after{content:" ▲";font-size:9px}
+th[aria-sort="descending"]::after{content:" ▼";font-size:9px}
+td.l,th.l{text-align:left}
+table.tight th,table.tight td{padding:7px 6px;font-size:12.5px}
+#tbStores th,#tbStores td{padding:8px 7px}
+#tbLev th,#tbLev td{padding:7px 4px}
+#levInsights .pill{white-space:normal;line-height:1.35}
+table.tight td.wrap{white-space:normal;min-width:120px}
+table.lev .mbar{width:44px;margin-right:4px}
+tr.ramp td{color:var(--muted)}
+tr.sel td{background:var(--brand-soft)}
+tbody tr:hover td{background:var(--surface-2)}
+tbody tr.sel:hover td{background:var(--brand-soft)}
+.mbar{display:inline-block;width:70px;height:6px;border-radius:3px;background:var(--grid);vertical-align:middle;margin-right:6px;position:relative;overflow:hidden}
+.mbar>i{position:absolute;inset:0 auto 0 0;border-radius:3px}
+.mbar.t::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink-2)}
+.tag{font-size:11px;padding:1px 6px;border-radius:4px;background:var(--grid);color:var(--ink-2);font-weight:500}
+
+/* heat */
+.heat{display:grid;gap:2px;font-variant-numeric:tabular-nums;min-width:0}
+.heat .hc{padding:7px 8px;border-radius:5px;text-align:center;font-size:13px;font-weight:500;min-height:34px;display:flex;align-items:center;justify-content:center;gap:4px}
+.heat .hl{padding:7px 8px 7px 0;font-weight:500;display:flex;align-items:center;gap:6px;font-size:13px}
+.heat .hh{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:center;padding:2px}
+.heat .hc.ramp{outline:1.5px dashed var(--axis);outline-offset:-2px;color:var(--muted)}
+.heat .hc.na{background:transparent;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface-2);padding:4px 11px;border-radius:999px;cursor:pointer;font-size:12.5px;color:var(--ink-2);min-height:30px}
+.chip:hover{border-color:var(--brand)}
+.chip[aria-pressed="true"]{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}
+
+/* notes */
+.strip{display:flex;flex-wrap:wrap;gap:8px 20px;padding:10px 14px;border:1px dashed var(--axis);border-radius:10px;font-size:12.5px;color:var(--ink-2);background:var(--surface-2)}
+.alert{display:flex;gap:10px;padding:10px 14px;border-radius:10px;background:var(--warn-soft);color:var(--ink);font-size:13px;border:1px solid var(--warn)}
+.alert b{color:var(--warn-ink)}
+
+/* simulator */
+.sim{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:900px){.sim{grid-template-columns:320px minmax(0,1fr)}}
+.sl{display:flex;flex-direction:column;gap:4px}
+.sl label{font-weight:600;display:flex;justify-content:space-between;gap:8px}
+.sl output{color:var(--brand);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--brand)}
+.tmrow{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+input.tmin{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;padding:5px 10px;min-height:36px;width:128px;font-variant-numeric:tabular-nums;font-weight:600;font-size:15px}
+.cmpp{border:1px solid var(--line);border-radius:10px;background:var(--surface-2);min-width:0;overflow:hidden}
+.cmpp svg{display:block}
+th.w{white-space:normal;min-width:118px;line-height:1.25}
+.bigno{font-family:var(--fd);font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+
+/* calendar */
+.cal{display:flex;flex-wrap:wrap;gap:14px 28px}
+.calm{min-width:0}
+.calm h4{margin:0 0 5px;font-size:13px;font-weight:600}
+.calg{display:grid;grid-template-columns:repeat(7,22px);gap:2px}
+.calg .dh{font-size:9px;text-transform:uppercase;color:var(--muted);text-align:center}
+.calg .dc{width:22px;height:22px;border-radius:3px;font-size:9.5px;line-height:1;display:flex;align-items:flex-start;justify-content:flex-start;padding:2px 3px;font-variant-numeric:tabular-nums;cursor:default;position:relative}
+.calg .dc.off{background:transparent;color:var(--muted);outline:1px dashed var(--grid);outline-offset:-1px}
+.calg .dc.flag::after{content:"";position:absolute;right:2px;bottom:2px;width:5px;height:5px;border-radius:50%;border:1.2px solid var(--crit)}
+.calg .dc.blank{visibility:hidden}
+@media(max-width:520px){.calg{grid-template-columns:repeat(7,20px)}.calg .dc{width:20px;height:20px;font-size:9px}}
+tr.grp td{background:var(--surface-2);font-weight:700;text-align:left;font-size:12px}
+.mkc{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+.mkv{font-size:12px;color:var(--ink-2)}
+@media(max-width:600px){#tbMk thead{display:none}#tbMk tr{display:block;border-bottom:1px solid var(--line);padding:4px 0}#tbMk tr.grp{padding:0}#tbMk td{display:block;border:0;padding:4px 10px;white-space:normal}#tbMk td[data-l]{display:flex;gap:10px;align-items:flex-start}#tbMk td[data-l]::before{content:attr(data-l);flex:0 0 30px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding-top:3px}#tbMk td:first-child{padding-top:8px}}
+
+/* tooltip */
+#tip{position:fixed;z-index:100;pointer-events:none;background:var(--ink);color:var(--surface);padding:8px 10px;border-radius:8px;font-size:12px;line-height:1.45;max-width:260px;opacity:0;transition:opacity .08s;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+#tip.on{opacity:1}
+#tip b{font-weight:600}
+#tip .tv{font-weight:600;font-size:13px}
+#tip .tl{opacity:.8}
+
+/* svg text */
+svg text{font-family:var(--fb);fill:var(--muted);font-size:11px}
+svg text.ink{fill:var(--ink)} svg text.ink2{fill:var(--ink-2)}
+svg .gl{stroke:var(--grid);stroke-width:1}
+svg .ax{stroke:var(--axis);stroke-width:1}
+.mk{cursor:pointer}
+.mk:hover{opacity:.85}
+
+@media (max-width:640px){
+  .sh h2{font-size:21px}
+  .tile .val{font-size:24px}
+  html{scroll-padding-top:200px}
+  .brand h1{font-size:18px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}#tip{transition:none}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div class="brand"><h1>Rahra · AlterVision</h1><span class="sub" id="brandSub"></span></div>
+      <div class="filters">
+        <div class="fgroup"><span class="flabel" id="lbPer">Meses</span>
+          <div class="seg" role="group" aria-labelledby="lbPer" id="fMon"></div></div>
+        <div class="fgroup"><label class="flabel" for="fStore">Loja</label><select class="sel" id="fStore"></select></div>
+      </div>
+    </div>
+    <nav class="nav" id="nav" aria-label="Seções">
+      <a href="#resumo">Resumo</a><a href="#rede">Rede</a><a href="#lojas">Lojas</a><a href="#dias">Dias</a><a href="#mercado">Mercado</a><a href="#vendedores">Vendedores</a><a href="#novas">Lojas novas</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="resumo">
+  <div class="sh"><h2>Resumo executivo</h2></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="strip" id="stripNotes">
+    <span id="partNote" hidden></span>
+    <span><b>Lojas novas:</b> Baronesa (rede desde 29/07) e Itabirito (câmera desde 24/08) aparecem, mas ficam fora das médias e rankings nos meses sem operação completa.</span>
+    <span><b>Conversão:</b> vendas ÷ grupos de visitantes ajustados. ● ≥35% · ◆ 20–35% · ▲ &lt;20%.</span>
+    <span><b>Fora do ar nesta conta:</b> motivos de não conversão (AlterVez), corridas e fluxo por corredor (Multiflow).</span>
+  </div>
+</section>
+
+<section id="rede">
+  <div class="sh"><h2>Rede</h2></div>
+  <div class="card"><div class="ch"><div><h3 id="cmpTitle"></h3><div class="hint" id="cmpHint"></div></div><button class="tbtn" type="button" data-twin="c2" aria-pressed="false">Tabela</button></div>
+    <div class="chartbox" id="c2"></div><div class="tw" id="c2t" hidden></div></div>
+  <div class="grid g2">
+    <div class="card"><div class="ch"><div><h3>Conversão da rede</h3><div class="hint">Vendas ÷ grupos ajustados, média ponderada</div></div><button class="tbtn" type="button" data-twin="c3" aria-pressed="false">Tabela</button></div>
+      <div class="chartbox" id="c3"></div><div class="tw" id="c3t" hidden></div></div>
+    <div class="card"><div class="ch"><div><h3>Conversão por loja</h3><div class="hint" id="c4hint"></div></div><button class="tbtn" type="button" data-twin="c4" aria-pressed="false">Tabela</button></div>
+      <div class="chartbox" id="c4"></div><div class="tw" id="c4t" hidden></div></div>
+  </div>
+  <div class="card"><div class="ch"><div><h3>Placar das lojas</h3><div class="hint" id="tbHint"></div></div></div>
+    <div class="tw"><table id="tbStores"></table></div>
+    <p class="note">Lojas em rampa aparecem em cinza, sem posição no ranking. Clique no cabeçalho para ordenar. PA = peças por atendimento. Ritmo (com mês parcial marcado) = receita do mês parcial ÷ receita do mês anterior proporcional aos dias.</p></div>
+</section>
+
+<section id="lojas">
+  <div class="sh"><h2>Lojas</h2></div>
+  <div class="card">
+    <div class="ch"><div><h3>Mapa de calor loja × mês</h3><div class="hint" id="heatHint"></div></div></div>
+    <div class="chips" id="heatChips" role="group" aria-label="Métrica do mapa"></div>
+    <div class="tw"><div class="heat" id="heat"></div></div>
+    <p class="note" id="heatNote"></p>
+  </div>
+</section>
+
+<section id="dias">
+  <div class="sh"><h2>Dias</h2></div>
+  <div class="grid g2">
+    <div class="card"><div class="ch"><div><h3>Perfil por dia da semana</h3><div class="hint" id="wdHint"></div></div><button class="tbtn" type="button" data-twin="c5" aria-pressed="false">Tabela</button></div>
+      <div class="chartbox" id="c5"></div><div class="tw" id="c5t" hidden></div></div>
+    <div class="card"><div class="ch"><div><h3>Melhores dias</h3><div class="hint" id="topHint"></div></div></div>
+      <div class="tw"><table id="tbTop"></table></div></div>
+  </div>
+  <div class="card"><div class="ch"><div><h3>Calendário diário</h3><div class="hint" id="calHint"></div></div></div>
+    <div class="chips" id="calChips" role="group" aria-label="Métrica do calendário"></div>
+    <div class="cal" id="cal"></div>
+    <div class="legend" id="calLeg"></div>
+    <p class="note">Círculo vermelho no dia: sinal de dado suspeito (fluxo sem venda, venda negativa, ticket fora do padrão) ou câmera abaixo de 90% em alguma loja da seleção. Dias fechados (domingo em Alfenas, Ouro Preto, Itajubá e Itabirito) ficam tracejados.</p></div>
+</section>
+
+<section id="mercado">
+  <div class="sh"><h2>Mercado</h2></div>
+  <div class="card">
+    <div class="ch"><div><h3>Rahra contra o mercado AlterVision</h3><div class="hint">Em que posição a Rahra está entre as lojas do mesmo segmento e formato na AlterVision</div></div></div>
+    <div class="fgroup" style="flex-wrap:wrap"><span class="flabel">Segmento</span><div class="seg" id="fSeg" role="group" aria-label="Segmento de mercado"><button type="button" data-v="bij">Bijuteria</button><button type="button" data-v="joi">Luxo e joias</button></div></div>
+    <details><summary style="cursor:pointer;font-weight:600;color:var(--brand)">Formato de cada loja (confirme: muda a comparação)</summary>
+      <div id="fmtBox" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 16px;margin-top:10px"></div></details>
+    <div class="tw"><table id="tbMk"></table></div>
+    <p class="note"><b>Como ler:</b> colocamos as lojas do mercado em fila, da pior para a melhor naquele indicador. “Mercado” é o valor da loja do meio da fila. <b>Entre os 25% piores</b>: a Rahra está abaixo de 3 de cada 4 lojas. <b>Abaixo do meio</b>: abaixo da loja do meio, mas fora dos 25% piores. <b>Acima do meio</b>: acima da loja do meio, mas fora dos 25% melhores. <b>Entre os 25% melhores</b>: acima de 3 de cada 4 lojas.</p>
+    <p class="note">Rahra = lojas do mesmo formato com medição completa nos dois meses comparados (julho usa junho como base; Jundiaí, Baronesa e Itabirito ficam fora onde não há base). Mercado = lojas do mesmo segmento e formato na AlterVision. Meses sem base de mercado na AlterVision (como o mês em andamento) não aparecem aqui.</p></div>
+</section>
+
+<section id="vendedores">
+  <div class="sh"><h2>Lojas dependem de vendedora</h2></div>
+  <div class="grid g2">
+    <div class="card"><div class="ch"><div><h3>Participação da vendedora nº 1 na loja</h3><div class="hint"><span class="vper"></span>, só logins individuais</div></div><button class="tbtn" type="button" data-twin="c7" aria-pressed="false">Tabela</button></div>
+      <div class="chartbox" id="c7"></div><div class="tw" id="c7t" hidden></div></div>
+    <div class="card"><div class="ch"><div><h3>Ranking de vendedores</h3><div class="hint" id="vHint"></div></div></div>
+      <div class="fgroup" style="flex-wrap:wrap"><span class="flabel">Mínimo de vendas</span><div class="seg" id="fMin" role="group" aria-label="Mínimo de vendas"><button type="button" data-v="0">Todas</button><button type="button" data-v="50">50+</button><button type="button" data-v="150">150+</button></div></div>
+      <div class="tw" style="max-height:480px;overflow:auto"><table id="tbSel" class="tight"></table></div>
+      <p class="note"><span class="vper"></span> (não muda com o filtro de meses). Vendedores de Baronesa e Itabirito incluem o período anterior à entrada na rede. Logins genéricos (Permuta, Compras colaboradoras, Vendedor 1…) ficam fora do ranking.</p></div>
+  </div>
+</section>
+
+<section id="novas">
+  <div class="sh"><h2>Lojas novas</h2></div>
+  <div class="grid g2">
+    <div class="card"><div class="ch"><div><h3>Receita semanal</h3><div class="hint">Linha vertical: início da medição de fluxo</div></div><button class="tbtn" type="button" data-twin="c8" aria-pressed="false">Tabela</button></div>
+      <div class="chartbox" id="c8"></div><div class="tw" id="c8t" hidden></div></div>
+    <div class="card"><div class="ch"><div><h3>Conversão semanal contra a rede</h3><div class="hint">Semanas com medição completa</div></div><button class="tbtn" type="button" data-twin="c9" aria-pressed="false">Tabela</button></div>
+      <div class="chartbox" id="c9"></div><div class="tw" id="c9t" hidden></div></div>
+  </div>
+  <p class="note">Semanas sem fluxo completo ficam sem conversão no gráfico.</p>
+</section>
+
+
+</main>
+<div id="tip" role="tooltip"></div>
+
+<script>
+(function(){
+"use strict";
+const D = /*DATA*/{"short":{"4458":"Alfenas","4507":"S.Bernardo","4517":"Jacareí","4873":"Brasília","5188":"Ouro Preto","5190":"Itajubá","5206":"SJC","5245":"Jundiaí","5254":"Valparaíso","5743":"Baronesa","6080":"Itabirito"},"full":{"4458":"Rahra Alfenas","4507":"Rahra São Bernardo Plaza","4517":"Rahra Jacareí Shopping","4873":"Rahra Brasília ParkShopping","5188":"Rahra Ouro Preto","5190":"Rahra Itajubá","5206":"Rahra SJC Shopping JD Oriente","5245":"Rahra Jundiaí Maxi Shopping","5254":"Rahra Valparaíso","5743":"Rahra Baronesa","6080":"Rahra Itabirito"},"format":{"4458":"rua","4507":"shopping","4517":"shopping","4873":"shopping","5188":"rua","5190":"rua","5206":"shopping","5245":"shopping","5254":"rua","5743":"rua","6080":"rua"},"order":[4458,4507,4517,4873,5188,5190,5206,5245,5254,5743,6080],"closedSun":[4458,5188,5190,6080],"inAvg":{"4458":{"jul":true,"ago":true,"set":true,"jun":true,"out":true},"4507":{"jul":true,"ago":true,"set":true,"jun":true,"out":true},"4517":{"jul":true,"ago":true,"set":true,"jun":true,"out":true},"4873":{"jul":true,"ago":true,"set":true,"jun":true,"out":true},"5188":{"jul":true,"ago":true,"set":true,"jun":true,"out":true},"5190":{"jul":true,"ago":true,"set":true,"jun":true,"out":true},"5206":{"jul":true,"ago":true,"set":true,"jun":true,"out":true},"5245":{"jul":true,"ago":true,"set":true,"jun":false,"out":true},"5254":{"jul":true,"ago":true,"set":true,"jun":true,"out":true},"5743":{"jul":false,"ago":true,"set":true,"jun":false,"out":true},"6080":{"jul":false,"ago":false,"set":true,"jun":false,"out":true}},"flowStart":{"5743":"2026-07-29","6080":"2026-08-24"},"monthly":{"4458":{"jun":{"revenue":47718.33,"sales":234,"items":508,"groups":961,"visitors":1098,"cs":234,"cg":910,"conv":25.7,"ticket":203.92,"upt":2.171,"price":93.93,"uptime":99.54},"jul":{"revenue":56347.05,"sales":276,"items":595,"groups":1079,"visitors":1264,"cs":276,"cg":1020,"conv":27.1,"ticket":204.16,"upt":2.156,"price":94.7,"uptime":99.52},"ago":{"revenue":46732.17,"sales":233,"items":551,"groups":810,"visitors":929,"cs":233,"cg":810,"conv":28.8,"ticket":200.57,"upt":2.365,"price":84.81,"uptime":99.91},"set":{"revenue":39276.49,"sales":199,"items":421,"groups":920,"visitors":null,"cs":199,"cg":920,"conv":21.6,"ticket":197.37,"upt":2.116,"price":93.29,"uptime":99.65},"out":{"revenue":44551.11,"sales":184,"items":532,"groups":677,"visitors":null,"cs":184,"cg":486,"conv":37.9,"ticket":242.13,"upt":2.891,"price":83.74,"uptime":99.26}},"4507":{"jun":{"revenue":46743.86,"sales":239,"items":516,"groups":1030,"visitors":1160,"cs":239,"cg":1030,"conv":23.2,"ticket":195.58,"upt":2.159,"price":90.59,"uptime":99.89},"jul":{"revenue":38020.04,"sales":236,"items":432,"groups":1224,"visitors":1360,"cs":236,"cg":1224,"conv":19.3,"ticket":161.1,"upt":1.831,"price":88.01,"uptime":99.5},"ago":{"revenue":50657.83,"sales":283,"items":557,"groups":1268,"visitors":1423,"cs":283,"cg":1254,"conv":22.6,"ticket":179.0,"upt":1.968,"price":90.95,"uptime":91.28},"set":{"revenue":40021.49,"sales":231,"items":445,"groups":964,"visitors":null,"cs":231,"cg":964,"conv":24.0,"ticket":173.25,"upt":1.926,"price":89.94,"uptime":99.79},"out":{"revenue":38993.07,"sales":231,"items":532,"groups":952,"visitors":null,"cs":231,"cg":952,"conv":24.3,"ticket":168.8,"upt":2.303,"price":73.3,"uptime":99.26}},"4517":{"jun":{"revenue":43145.57,"sales":254,"items":415,"groups":1694,"visitors":2011,"cs":254,"cg":1694,"conv":15,"ticket":169.86,"upt":1.634,"price":103.97,"uptime":97.56},"jul":{"revenue":47335.55,"sales":256,"items":472,"groups":1616,"visitors":1977,"cs":256,"cg":1616,"conv":15.8,"ticket":184.9,"upt":1.844,"price":100.29,"uptime":99.74},"ago":{"revenue":42272.59,"sales":257,"items":500,"groups":1554,"visitors":1842,"cs":257,"cg":1554,"conv":16.5,"ticket":164.48,"upt":1.946,"price":84.55,"uptime":99.92},"set":{"revenue":49805.6,"sales":286,"items":587,"groups":1068,"visitors":null,"cs":286,"cg":1068,"conv":26.8,"ticket":174.15,"upt":2.052,"price":84.85,"uptime":99.42},"out":{"revenue":45876.28,"sales":262,"items":562,"groups":798,"visitors":null,"cs":262,"cg":798,"conv":32.8,"ticket":175.1,"upt":2.145,"price":81.63,"uptime":99.61}},"4873":{"jun":{"revenue":54561.67,"sales":274,"items":556,"groups":1181,"visitors":1339,"cs":274,"cg":1181,"conv":23.2,"ticket":199.13,"upt":2.029,"price":98.13,"uptime":92.04},"jul":{"revenue":62439.48,"sales":312,"items":658,"groups":1433,"visitors":1642,"cs":312,"cg":1433,"conv":21.8,"ticket":200.13,"upt":2.109,"price":94.89,"uptime":95.68},"ago":{"revenue":65562.35,"sales":279,"items":721,"groups":1254,"visitors":1435,"cs":279,"cg":1254,"conv":22.2,"ticket":234.99,"upt":2.584,"price":90.93,"uptime":95.94},"set":{"revenue":50852.94,"sales":239,"items":550,"groups":942,"visitors":null,"cs":239,"cg":942,"conv":25.4,"ticket":212.77,"upt":2.301,"price":92.46,"uptime":95.91},"out":{"revenue":54706.93,"sales":246,"items":679,"groups":760,"visitors":null,"cs":246,"cg":760,"conv":32.4,"ticket":222.39,"upt":2.76,"price":80.57,"uptime":98.58}},"5188":{"jun":{"revenue":58644.21,"sales":306,"items":704,"groups":676,"visitors":768,"cs":167,"cg":618,"conv":27,"ticket":191.65,"upt":2.301,"price":83.3,"uptime":99.81},"jul":{"revenue":58506.06,"sales":285,"items":670,"groups":1543,"visitors":1776,"cs":283,"cg":1405,"conv":20.1,"ticket":205.28,"upt":2.351,"price":87.32,"uptime":99.29},"ago":{"revenue":56386.99,"sales":259,"items":647,"groups":1268,"visitors":1401,"cs":257,"cg":1268,"conv":20.3,"ticket":217.71,"upt":2.498,"price":87.15,"uptime":99.59},"set":{"revenue":42599.45,"sales":196,"items":465,"groups":1025,"visitors":null,"cs":191,"cg":959,"conv":19.9,"ticket":217.34,"upt":2.372,"price":91.61,"uptime":97.48},"out":{"revenue":35422.06,"sales":169,"items":429,"groups":629,"visitors":null,"cs":169,"cg":629,"conv":26.9,"ticket":209.6,"upt":2.538,"price":82.57,"uptime":94.93}},"5190":{"jun":{"revenue":53575.06,"sales":339,"items":589,"groups":874,"visitors":1066,"cs":230,"cg":836,"conv":27.5,"ticket":158.04,"upt":1.737,"price":90.96,"uptime":99.67},"jul":{"revenue":72888.16,"sales":394,"items":824,"groups":1623,"visitors":2053,"cs":394,"cg":1562,"conv":25.2,"ticket":185.0,"upt":2.091,"price":88.46,"uptime":99.56},"ago":{"revenue":80593.08,"sales":417,"items":945,"groups":1617,"visitors":2000,"cs":417,"cg":1617,"conv":25.8,"ticket":193.27,"upt":2.266,"price":85.28,"uptime":99.84},"set":{"revenue":80259.52,"sales":439,"items":999,"groups":1489,"visitors":null,"cs":439,"cg":1484,"conv":29.6,"ticket":182.82,"upt":2.276,"price":80.34,"uptime":99.52},"out":{"revenue":64131.41,"sales":367,"items":894,"groups":1317,"visitors":null,"cs":367,"cg":1317,"conv":27.9,"ticket":174.74,"upt":2.436,"price":71.74,"uptime":99.33}},"5206":{"jun":{"revenue":42636.26,"sales":285,"items":531,"groups":813,"visitors":1010,"cs":131,"cg":813,"conv":16.1,"ticket":149.6,"upt":1.863,"price":80.29,"uptime":99.63},"jul":{"revenue":42836.93,"sales":302,"items":538,"groups":1653,"visitors":2010,"cs":302,"cg":1653,"conv":18.3,"ticket":141.84,"upt":1.781,"price":79.62,"uptime":99.5},"ago":{"revenue":52907.25,"sales":325,"items":660,"groups":1512,"visitors":1831,"cs":325,"cg":1512,"conv":21.5,"ticket":162.79,"upt":2.031,"price":80.16,"uptime":99.64},"set":{"revenue":53946.34,"sales":320,"items":668,"groups":1471,"visitors":null,"cs":320,"cg":1471,"conv":21.8,"ticket":168.58,"upt":2.087,"price":80.76,"uptime":98.36},"out":{"revenue":45172.97,"sales":309,"items":641,"groups":1197,"visitors":null,"cs":309,"cg":1197,"conv":25.8,"ticket":146.19,"upt":2.074,"price":70.47,"uptime":97.43}},"5245":{"jun":{"revenue":3108.71,"sales":15,"items":27,"groups":763,"visitors":953,"cs":15,"cg":154,"conv":9.7,"ticket":207.25,"upt":1.8,"price":115.14,"uptime":98.59},"jul":{"revenue":46587.82,"sales":274,"items":509,"groups":2235,"visitors":2988,"cs":274,"cg":2235,"conv":12.3,"ticket":170.03,"upt":1.858,"price":91.53,"uptime":99.25},"ago":{"revenue":43154.82,"sales":282,"items":511,"groups":2018,"visitors":2617,"cs":282,"cg":2018,"conv":14,"ticket":153.03,"upt":1.812,"price":84.45,"uptime":99.1},"set":{"revenue":42982.11,"sales":265,"items":464,"groups":1829,"visitors":null,"cs":265,"cg":1782,"conv":14.9,"ticket":162.2,"upt":1.751,"price":92.63,"uptime":99.56},"out":{"revenue":38159.01,"sales":224,"items":466,"groups":1322,"visitors":null,"cs":224,"cg":1322,"conv":16.9,"ticket":170.35,"upt":2.08,"price":81.89,"uptime":76.25}},"5254":{"jun":{"revenue":34297.66,"sales":161,"items":365,"groups":904,"visitors":1032,"cs":161,"cg":904,"conv":17.8,"ticket":213.03,"upt":2.267,"price":93.97,"uptime":99.78},"jul":{"revenue":47968.91,"sales":251,"items":564,"groups":1298,"visitors":1531,"cs":251,"cg":1298,"conv":19.3,"ticket":191.11,"upt":2.247,"price":85.05,"uptime":99.42},"ago":{"revenue":58121.12,"sales":309,"items":695,"groups":1022,"visitors":1328,"cs":309,"cg":1022,"conv":30.2,"ticket":188.09,"upt":2.249,"price":83.63,"uptime":98.71},"set":{"revenue":46175.11,"sales":278,"items":607,"groups":841,"visitors":null,"cs":278,"cg":841,"conv":33.1,"ticket":166.1,"upt":2.183,"price":76.07,"uptime":99.27},"out":{"revenue":50880.57,"sales":284,"items":716,"groups":710,"visitors":null,"cs":284,"cg":710,"conv":40.0,"ticket":179.16,"upt":2.521,"price":71.06,"uptime":98.53}},"5743":{"jun":{"revenue":0,"sales":0,"items":0,"groups":0,"visitors":0,"cs":0,"cg":0,"conv":0,"ticket":0,"upt":0,"price":0,"uptime":100},"jul":{"revenue":71519.74,"sales":436,"items":803,"groups":106,"visitors":127,"cs":34,"cg":75,"conv":45.3,"ticket":164.04,"upt":1.842,"price":89.07,"uptime":99.27},"ago":{"revenue":66410.7,"sales":395,"items":796,"groups":1122,"visitors":1326,"cs":395,"cg":1122,"conv":35.2,"ticket":168.13,"upt":2.015,"price":83.43,"uptime":95.78},"set":{"revenue":73938.98,"sales":417,"items":780,"groups":1271,"visitors":null,"cs":417,"cg":1194,"conv":34.9,"ticket":177.31,"upt":1.871,"price":94.79,"uptime":99.18},"out":{"revenue":66585.68,"sales":406,"items":801,"groups":1027,"visitors":null,"cs":406,"cg":1027,"conv":39.5,"ticket":164.0,"upt":1.973,"price":83.13,"uptime":99.47}},"6080":{"jun":{"revenue":61887.35,"sales":355,"items":644,"groups":0,"visitors":0,"cs":0,"cg":0,"conv":0,"ticket":174.33,"upt":1.814,"price":96.1,"uptime":100},"jul":{"revenue":61223.56,"sales":367,"items":695,"groups":0,"visitors":0,"cs":0,"cg":0,"conv":0,"ticket":166.82,"upt":1.894,"price":88.09,"uptime":100},"ago":{"revenue":64778.53,"sales":383,"items":821,"groups":273,"visitors":330,"cs":98,"cg":273,"conv":35.9,"ticket":169.13,"upt":2.144,"price":78.9,"uptime":99.59},"set":{"revenue":72751.43,"sales":389,"items":853,"groups":977,"visitors":null,"cs":389,"cg":977,"conv":39.8,"ticket":187.02,"upt":2.193,"price":85.29,"uptime":93.59},"out":{"revenue":54675.71,"sales":321,"items":668,"groups":850,"visitors":null,"cs":321,"cg":850,"conv":37.8,"ticket":170.33,"upt":2.081,"price":81.85,"uptime":99.22}}},"daily":{"4458":[{"d":"2026-07-01","g":34,"n":12,"r":2530.85,"i":23,"u":100},{"d":"2026-07-02","g":33,"n":13,"r":2330.36,"i":26,"u":100},{"d":"2026-07-03","g":39,"n":6,"r":859.5,"i":10,"u":97.13},{"d":"2026-07-04","g":29,"n":9,"r":1799.07,"i":21,"u":100},{"d":"2026-07-05","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-06","g":28,"n":4,"r":1039.8,"i":4,"u":100},{"d":"2026-07-07","g":41,"n":12,"r":2081.9,"i":22,"u":98.77},{"d":"2026-07-08","g":39,"n":10,"r":2290.96,"i":21,"u":100},{"d":"2026-07-09","g":27,"n":11,"r":2088.9,"i":24,"u":100},{"d":"2026-07-10","g":67,"n":15,"r":4173.14,"i":38,"u":100},{"d":"2026-07-11","g":36,"n":11,"r":3251.69,"i":32,"u":100},{"d":"2026-07-12","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-13","g":39,"n":9,"r":4197.09,"i":46,"u":96.31},{"d":"2026-07-14","g":46,"n":10,"r":1959.05,"i":23,"u":99.59},{"d":"2026-07-15","g":36,"n":7,"r":673.7,"i":7,"u":100},{"d":"2026-07-16","g":42,"n":14,"r":2423.89,"i":23,"u":100},{"d":"2026-07-17","g":44,"n":17,"r":2274.14,"i":29,"u":100},{"d":"2026-07-18","g":40,"n":8,"r":1958.9,"i":22,"u":100},{"d":"2026-07-19","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-20","g":54,"n":8,"r":1053.26,"i":15,"u":99.59},{"d":"2026-07-21","g":36,"n":8,"r":2092.93,"i":22,"u":100},{"d":"2026-07-22","g":33,"n":8,"r":1329.21,"i":17,"u":100},{"d":"2026-07-23","g":46,"n":11,"r":3222.62,"i":30,"u":100},{"d":"2026-07-24","g":23,"n":8,"r":1215.23,"i":12,"u":100},{"d":"2026-07-25","g":83,"n":19,"r":3167.4,"i":32,"u":100},{"d":"2026-07-26","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-27","g":22,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-28","g":37,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-29","g":40,"n":21,"r":3673.23,"i":39,"u":95.47},{"d":"2026-07-30","g":37,"n":7,"r":1276,"i":20,"u":98.36},{"d":"2026-07-31","g":48,"n":18,"r":3384.23,"i":37,"u":100},{"d":"2026-08-01","g":51,"n":17,"r":3066.24,"i":36,"u":100},{"d":"2026-08-02","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-03","g":29,"n":8,"r":1679.05,"i":19,"u":100},{"d":"2026-08-04","g":38,"n":6,"r":1829.5,"i":10,"u":100},{"d":"2026-08-05","g":33,"n":13,"r":1968.7,"i":26,"u":100},{"d":"2026-08-06","g":30,"n":7,"r":989.55,"i":11,"u":100},{"d":"2026-08-07","g":33,"n":10,"r":1948.95,"i":21,"u":100},{"d":"2026-08-08","g":24,"n":5,"r":947.5,"i":10,"u":100},{"d":"2026-08-09","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-10","g":26,"n":5,"r":1678.85,"i":23,"u":100},{"d":"2026-08-11","g":33,"n":16,"r":3543.14,"i":54,"u":100},{"d":"2026-08-12","g":37,"n":7,"r":1443.43,"i":20,"u":100},{"d":"2026-08-13","g":36,"n":6,"r":1669.5,"i":10,"u":100},{"d":"2026-08-14","g":30,"n":12,"r":2615.95,"i":37,"u":99.59},{"d":"2026-08-15","g":58,"n":28,"r":4843.48,"i":61,"u":100},{"d":"2026-08-16","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-17","g":14,"n":3,"r":158.9,"i":3,"u":99.59},{"d":"2026-08-18","g":22,"n":11,"r":1667.13,"i":18,"u":100},{"d":"2026-08-19","g":25,"n":5,"r":1559.24,"i":26,"u":100},{"d":"2026-08-20","g":32,"n":9,"r":2456.74,"i":34,"u":100},{"d":"2026-08-21","g":33,"n":10,"r":1418.35,"i":16,"u":100},{"d":"2026-08-22","g":35,"n":6,"r":913.45,"i":11,"u":100},{"d":"2026-08-23","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-24","g":15,"n":4,"r":1104.95,"i":8,"u":100},{"d":"2026-08-25","g":27,"n":6,"r":1447.31,"i":15,"u":99.18},{"d":"2026-08-26","g":23,"n":4,"r":927.44,"i":13,"u":99.59},{"d":"2026-08-27","g":32,"n":7,"r":1979.42,"i":16,"u":99.18},{"d":"2026-08-28","g":31,"n":11,"r":1719.1,"i":18,"u":100},{"d":"2026-08-29","g":42,"n":10,"r":2256.95,"i":22,"u":100},{"d":"2026-08-30","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-31","g":21,"n":7,"r":899.35,"i":13,"u":100},{"d":"2026-09-01","g":23,"n":5,"r":1000.46,"i":14,"u":100},{"d":"2026-09-02","g":37,"n":9,"r":859.46,"i":12,"u":98.77},{"d":"2026-09-03","g":38,"n":2,"r":359.91,"i":3,"u":97.54},{"d":"2026-09-04","g":61,"n":10,"r":1389.25,"i":15,"u":100},{"d":"2026-09-05","g":22,"n":6,"r":1309.36,"i":14,"u":100},{"d":"2026-09-06","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-07","g":0,"n":0,"r":0.0,"i":0,"u":99.18},{"d":"2026-09-08","g":34,"n":4,"r":1719.71,"i":7,"u":100},{"d":"2026-09-09","g":33,"n":7,"r":1229.26,"i":16,"u":100},{"d":"2026-09-10","g":35,"n":8,"r":1329.3,"i":14,"u":100},{"d":"2026-09-11","g":39,"n":11,"r":2510.71,"i":27,"u":100},{"d":"2026-09-12","g":30,"n":4,"r":1189.5,"i":12,"u":100},{"d":"2026-09-13","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-14","g":18,"n":5,"r":869.7,"i":7,"u":100},{"d":"2026-09-15","g":39,"n":9,"r":2605.0,"i":23,"u":100},{"d":"2026-09-16","g":38,"n":4,"r":697.5,"i":11,"u":99.59},{"d":"2026-09-17","g":25,"n":9,"r":1402.29,"i":17,"u":100},{"d":"2026-09-18","g":62,"n":11,"r":2793.6,"i":30,"u":97.95},{"d":"2026-09-19","g":75,"n":26,"r":4999.63,"i":55,"u":98.05},{"d":"2026-09-20","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-21","g":21,"n":1,"r":479.8,"i":4,"u":100},{"d":"2026-09-22","g":36,"n":8,"r":1283.24,"i":15,"u":100},{"d":"2026-09-23","g":26,"n":6,"r":1169.5,"i":10,"u":99.59},{"d":"2026-09-24","g":46,"n":11,"r":2588.8,"i":26,"u":99.59},{"d":"2026-09-25","g":35,"n":13,"r":1962.85,"i":24,"u":100},{"d":"2026-09-26","g":42,"n":11,"r":2649.16,"i":35,"u":100},{"d":"2026-09-27","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-28","g":33,"n":6,"r":1049.5,"i":10,"u":100},{"d":"2026-09-29","g":39,"n":6,"r":899.6,"i":8,"u":99.18},{"d":"2026-09-30","g":33,"n":7,"r":929.4,"i":12,"u":100},{"d":"2026-10-01","g":30,"n":7,"r":1699.1,"i":22,"u":100},{"d":"2026-10-02","g":32,"n":8,"r":1649.37,"i":18,"u":95.49},{"d":"2026-10-03","g":35,"n":8,"r":2015.19,"i":24,"u":100},{"d":"2026-10-04","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-05","g":37,"n":6,"r":1244.54,"i":18,"u":90.57},{"d":"2026-10-06","g":27,"n":8,"r":2457.71,"i":26,"u":100},{"d":"2026-10-07","g":41,"n":13,"r":2583.75,"i":33,"u":100},{"d":"2026-10-08","g":33,"n":10,"r":2136.7,"i":27,"u":100},{"d":"2026-10-09","g":31,"n":11,"r":2311.65,"i":27,"u":100},{"d":"2026-10-10","g":36,"n":11,"r":2618.7,"i":35,"u":100},{"d":"2026-10-11","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-12","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-13","g":31,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-14","g":29,"n":0,"r":0.0,"i":0,"u":97.95},{"d":"2026-10-15","g":0,"n":0,"r":0.0,"i":0,"u":99.59},{"d":"2026-10-16","g":45,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-17","g":37,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-18","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-19","g":25,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-20","g":24,"n":0,"r":0.0,"i":0,"u":99.59},{"d":"2026-10-21","g":37,"n":55,"r":15456.13,"i":172,"u":100},{"d":"2026-10-22","g":32,"n":5,"r":722.12,"i":9,"u":98.36},{"d":"2026-10-23","g":36,"n":14,"r":2130.2,"i":27,"u":100},{"d":"2026-10-24","g":79,"n":28,"r":7525.95,"i":94,"u":100},{"d":"2026-10-25","g":0,"n":0,"r":0.0,"i":0,"u":100}],"4507":[{"d":"2026-07-01","g":48,"n":11,"r":1297.13,"i":19,"u":100},{"d":"2026-07-02","g":39,"n":7,"r":1013.31,"i":16,"u":100},{"d":"2026-07-03","g":64,"n":12,"r":1685.91,"i":18,"u":100},{"d":"2026-07-04","g":57,"n":11,"r":1770.15,"i":20,"u":100},{"d":"2026-07-05","g":36,"n":2,"r":139.85,"i":5,"u":100},{"d":"2026-07-06","g":35,"n":6,"r":1164.51,"i":10,"u":100},{"d":"2026-07-07","g":22,"n":7,"r":1200.83,"i":18,"u":100},{"d":"2026-07-08","g":44,"n":10,"r":1356.01,"i":14,"u":100},{"d":"2026-07-09","g":68,"n":17,"r":2589.46,"i":32,"u":100},{"d":"2026-07-10","g":49,"n":12,"r":2183.12,"i":20,"u":100},{"d":"2026-07-11","g":59,"n":8,"r":1813.12,"i":18,"u":100},{"d":"2026-07-12","g":28,"n":4,"r":399.65,"i":7,"u":86.21},{"d":"2026-07-13","g":35,"n":5,"r":489.65,"i":7,"u":100},{"d":"2026-07-14","g":28,"n":11,"r":1624.32,"i":17,"u":98.7},{"d":"2026-07-15","g":42,"n":9,"r":1907.99,"i":25,"u":100},{"d":"2026-07-16","g":30,"n":5,"r":581.66,"i":7,"u":100},{"d":"2026-07-17","g":26,"n":10,"r":1483.87,"i":16,"u":100},{"d":"2026-07-18","g":45,"n":10,"r":1118.57,"i":15,"u":100},{"d":"2026-07-19","g":23,"n":5,"r":795.5,"i":11,"u":100},{"d":"2026-07-20","g":27,"n":4,"r":564.65,"i":10,"u":100},{"d":"2026-07-21","g":22,"n":7,"r":1525.4,"i":16,"u":100},{"d":"2026-07-22","g":35,"n":9,"r":1307,"i":15,"u":100},{"d":"2026-07-23","g":39,"n":5,"r":969.6,"i":8,"u":100},{"d":"2026-07-24","g":37,"n":8,"r":1174.56,"i":13,"u":100},{"d":"2026-07-25","g":87,"n":11,"r":2539.11,"i":18,"u":100},{"d":"2026-07-26","g":37,"n":5,"r":1177.55,"i":11,"u":100},{"d":"2026-07-27","g":38,"n":10,"r":2052.07,"i":19,"u":99.68},{"d":"2026-07-28","g":29,"n":3,"r":213.8,"i":4,"u":100},{"d":"2026-07-29","g":21,"n":4,"r":314.72,"i":6,"u":100},{"d":"2026-07-30","g":35,"n":2,"r":459.85,"i":3,"u":100},{"d":"2026-07-31","g":39,"n":6,"r":1107.12,"i":14,"u":100},{"d":"2026-08-01","g":75,"n":10,"r":1287.27,"i":15,"u":100},{"d":"2026-08-02","g":58,"n":8,"r":1839.2,"i":16,"u":100},{"d":"2026-08-03","g":23,"n":3,"r":766.62,"i":8,"u":100},{"d":"2026-08-04","g":25,"n":5,"r":414.12,"i":8,"u":100},{"d":"2026-08-05","g":25,"n":7,"r":1815.29,"i":16,"u":100},{"d":"2026-08-06","g":52,"n":13,"r":2718.15,"i":32,"u":100},{"d":"2026-08-07","g":59,"n":7,"r":1354.25,"i":16,"u":100},{"d":"2026-08-08","g":143,"n":51,"r":6967.04,"i":92,"u":100},{"d":"2026-08-09","g":38,"n":7,"r":1605.65,"i":11,"u":100},{"d":"2026-08-10","g":14,"n":0,"r":100,"i":0,"u":100},{"d":"2026-08-11","g":20,"n":4,"r":589.56,"i":10,"u":100},{"d":"2026-08-12","g":39,"n":13,"r":1672.69,"i":23,"u":100},{"d":"2026-08-13","g":40,"n":7,"r":1869.15,"i":17,"u":100},{"d":"2026-08-14","g":45,"n":15,"r":1817.75,"i":21,"u":100},{"d":"2026-08-15","g":47,"n":18,"r":3462.5,"i":32,"u":100},{"d":"2026-08-16","g":30,"n":6,"r":2099.42,"i":26,"u":100},{"d":"2026-08-17","g":22,"n":5,"r":854.63,"i":10,"u":100},{"d":"2026-08-18","g":14,"n":2,"r":338.31,"i":4,"u":100},{"d":"2026-08-19","g":26,"n":7,"r":1059.5,"i":10,"u":100},{"d":"2026-08-20","g":44,"n":6,"r":956.41,"i":11,"u":100},{"d":"2026-08-21","g":39,"n":9,"r":2933.5,"i":21,"u":100},{"d":"2026-08-22","g":72,"n":16,"r":3137.28,"i":40,"u":100},{"d":"2026-08-23","g":25,"n":3,"r":336.85,"i":3,"u":99.57},{"d":"2026-08-24","g":16,"n":3,"r":201.01,"i":3,"u":100},{"d":"2026-08-25","g":27,"n":6,"r":669.6,"i":8,"u":100},{"d":"2026-08-26","g":23,"n":3,"r":445.81,"i":5,"u":90.26},{"d":"2026-08-27","g":40,"n":6,"r":749.62,"i":10,"u":0},{"d":"2026-08-28","g":56,"n":14,"r":1998.93,"i":24,"u":0},{"d":"2026-08-29","g":75,"n":22,"r":4775.07,"i":44,"u":39.74},{"d":"2026-08-30","g":26,"n":4,"r":1149.45,"i":11,"u":100},{"d":"2026-08-31","g":30,"n":3,"r":673.2,"i":10,"u":100},{"d":"2026-09-01","g":43,"n":5,"r":1311.62,"i":8,"u":100},{"d":"2026-09-02","g":24,"n":11,"r":1498.77,"i":16,"u":99.03},{"d":"2026-09-03","g":27,"n":9,"r":1807.16,"i":22,"u":100},{"d":"2026-09-04","g":41,"n":9,"r":2171.2,"i":22,"u":99.35},{"d":"2026-09-05","g":126,"n":34,"r":6309.07,"i":74,"u":100},{"d":"2026-09-06","g":49,"n":7,"r":769.6,"i":8,"u":100},{"d":"2026-09-07","g":31,"n":5,"r":779.46,"i":12,"u":100},{"d":"2026-09-08","g":18,"n":2,"r":338.2,"i":4,"u":100},{"d":"2026-09-09","g":19,"n":3,"r":189.85,"i":3,"u":100},{"d":"2026-09-10","g":18,"n":2,"r":329.85,"i":3,"u":100},{"d":"2026-09-11","g":35,"n":11,"r":1967.14,"i":20,"u":97.4},{"d":"2026-09-12","g":64,"n":16,"r":2479.7,"i":32,"u":98.7},{"d":"2026-09-13","g":26,"n":5,"r":466.75,"i":9,"u":100},{"d":"2026-09-14","g":20,"n":4,"r":782.65,"i":9,"u":100},{"d":"2026-09-15","g":28,"n":5,"r":1029.5,"i":10,"u":100},{"d":"2026-09-16","g":16,"n":3,"r":518.25,"i":6,"u":100},{"d":"2026-09-17","g":18,"n":5,"r":1149.47,"i":12,"u":100},{"d":"2026-09-18","g":23,"n":8,"r":872.4,"i":14,"u":100},{"d":"2026-09-19","g":49,"n":13,"r":2388.01,"i":24,"u":100},{"d":"2026-09-20","g":28,"n":3,"r":859.12,"i":8,"u":100},{"d":"2026-09-21","g":17,"n":3,"r":629.85,"i":5,"u":100},{"d":"2026-09-22","g":16,"n":7,"r":979.61,"i":10,"u":100},{"d":"2026-09-23","g":20,"n":5,"r":950.47,"i":11,"u":100},{"d":"2026-09-24","g":19,"n":6,"r":1562.3,"i":14,"u":100},{"d":"2026-09-25","g":29,"n":4,"r":329.72,"i":6,"u":99.68},{"d":"2026-09-26","g":67,"n":18,"r":3484.5,"i":32,"u":100},{"d":"2026-09-27","g":28,"n":4,"r":323.9,"i":6,"u":100},{"d":"2026-09-28","g":19,"n":7,"r":1136.57,"i":17,"u":100},{"d":"2026-09-29","g":18,"n":9,"r":1361.46,"i":14,"u":100},{"d":"2026-09-30","g":28,"n":8,"r":1245.34,"i":14,"u":99.68},{"d":"2026-10-01","g":24,"n":4,"r":1439.7,"i":19,"u":99.03},{"d":"2026-10-02","g":36,"n":18,"r":2957.97,"i":44,"u":96.1},{"d":"2026-10-03","g":67,"n":18,"r":2518.7,"i":36,"u":100},{"d":"2026-10-04","g":43,"n":4,"r":699.7,"i":9,"u":100},{"d":"2026-10-05","g":25,"n":6,"r":889.55,"i":9,"u":100},{"d":"2026-10-06","g":29,"n":8,"r":1309.35,"i":17,"u":100},{"d":"2026-10-07","g":31,"n":9,"r":1331.41,"i":16,"u":97.73},{"d":"2026-10-08","g":31,"n":7,"r":834.55,"i":14,"u":98.7},{"d":"2026-10-09","g":32,"n":15,"r":2138.8,"i":35,"u":100},{"d":"2026-10-10","g":69,"n":24,"r":3146.41,"i":51,"u":100},{"d":"2026-10-11","g":55,"n":10,"r":1508.2,"i":23,"u":100},{"d":"2026-10-12","g":61,"n":6,"r":739.65,"i":9,"u":100},{"d":"2026-10-13","g":43,"n":7,"r":1055.05,"i":14,"u":100},{"d":"2026-10-14","g":27,"n":9,"r":2993.11,"i":28,"u":100},{"d":"2026-10-15","g":20,"n":5,"r":734.88,"i":15,"u":98.05},{"d":"2026-10-16","g":25,"n":7,"r":597.57,"i":11,"u":99.03},{"d":"2026-10-17","g":53,"n":12,"r":2278.6,"i":36,"u":100},{"d":"2026-10-18","g":43,"n":5,"r":675.63,"i":11,"u":100},{"d":"2026-10-19","g":29,"n":6,"r":1002.52,"i":13,"u":95.78},{"d":"2026-10-20","g":13,"n":5,"r":446.95,"i":8,"u":98.05},{"d":"2026-10-21","g":24,"n":13,"r":3651.65,"i":38,"u":100},{"d":"2026-10-22","g":27,"n":5,"r":2364.05,"i":20,"u":99.67},{"d":"2026-10-23","g":37,"n":13,"r":1709.12,"i":28,"u":99.35},{"d":"2026-10-24","g":90,"n":12,"r":1570.15,"i":22,"u":100},{"d":"2026-10-25","g":18,"n":3,"r":399.8,"i":6,"u":100}],"4517":[{"d":"2026-07-01","g":35,"n":5,"r":829.55,"i":9,"u":100},{"d":"2026-07-02","g":59,"n":5,"r":789.65,"i":7,"u":98.69},{"d":"2026-07-03","g":76,"n":11,"r":2243.96,"i":22,"u":100},{"d":"2026-07-04","g":107,"n":18,"r":4241.15,"i":39,"u":100},{"d":"2026-07-05","g":23,"n":3,"r":611.65,"i":9,"u":99.51},{"d":"2026-07-06","g":51,"n":5,"r":1329.6,"i":8,"u":100},{"d":"2026-07-07","g":63,"n":8,"r":1949.15,"i":17,"u":99.68},{"d":"2026-07-08","g":51,"n":8,"r":1849.1,"i":22,"u":99.02},{"d":"2026-07-09","g":72,"n":7,"r":1113.52,"i":10,"u":100},{"d":"2026-07-10","g":82,"n":8,"r":1466.33,"i":15,"u":99.68},{"d":"2026-07-11","g":72,"n":18,"r":1712.86,"i":24,"u":98.38},{"d":"2026-07-12","g":27,"n":6,"r":743.58,"i":9,"u":99.52},{"d":"2026-07-13","g":38,"n":5,"r":1049.6,"i":8,"u":99.68},{"d":"2026-07-14","g":41,"n":8,"r":1917.13,"i":20,"u":100},{"d":"2026-07-15","g":41,"n":10,"r":1371.26,"i":16,"u":100},{"d":"2026-07-16","g":60,"n":12,"r":1765.13,"i":18,"u":99.34},{"d":"2026-07-17","g":58,"n":14,"r":1738.95,"i":22,"u":99.67},{"d":"2026-07-18","g":103,"n":20,"r":3603.05,"i":43,"u":100},{"d":"2026-07-19","g":20,"n":4,"r":713.75,"i":6,"u":99.51},{"d":"2026-07-20","g":46,"n":5,"r":655.74,"i":6,"u":99.68},{"d":"2026-07-21","g":40,"n":8,"r":1477.32,"i":18,"u":100},{"d":"2026-07-22","g":29,"n":6,"r":927.38,"i":13,"u":99.68},{"d":"2026-07-23","g":52,"n":7,"r":1995.47,"i":11,"u":100},{"d":"2026-07-24","g":36,"n":3,"r":1161.56,"i":9,"u":100},{"d":"2026-07-25","g":66,"n":11,"r":2408.3,"i":19,"u":100},{"d":"2026-07-26","g":25,"n":3,"r":493.85,"i":5,"u":100},{"d":"2026-07-27","g":57,"n":9,"r":1687.28,"i":15,"u":100},{"d":"2026-07-28","g":33,"n":4,"r":804.76,"i":5,"u":100},{"d":"2026-07-29","g":39,"n":8,"r":1503.32,"i":16,"u":100},{"d":"2026-07-30","g":56,"n":7,"r":1549.3,"i":14,"u":100},{"d":"2026-07-31","g":58,"n":10,"r":1632.3,"i":17,"u":100},{"d":"2026-08-01","g":65,"n":8,"r":1010.48,"i":11,"u":100},{"d":"2026-08-02","g":18,"n":2,"r":299.8,"i":4,"u":99.51},{"d":"2026-08-03","g":39,"n":6,"r":956.43,"i":12,"u":100},{"d":"2026-08-04","g":52,"n":9,"r":1156.21,"i":16,"u":100},{"d":"2026-08-05","g":49,"n":8,"r":1045.45,"i":13,"u":100},{"d":"2026-08-06","g":43,"n":4,"r":839.55,"i":9,"u":100},{"d":"2026-08-07","g":62,"n":14,"r":2652.75,"i":27,"u":99.35},{"d":"2026-08-08","g":85,"n":10,"r":1637.12,"i":20,"u":100},{"d":"2026-08-09","g":41,"n":4,"r":629.7,"i":6,"u":100},{"d":"2026-08-10","g":30,"n":5,"r":649.55,"i":9,"u":99.68},{"d":"2026-08-11","g":43,"n":8,"r":1559.11,"i":19,"u":100},{"d":"2026-08-12","g":43,"n":4,"r":279.75,"i":5,"u":100},{"d":"2026-08-13","g":54,"n":8,"r":1689.3,"i":14,"u":100},{"d":"2026-08-14","g":78,"n":14,"r":2618.02,"i":32,"u":100},{"d":"2026-08-15","g":83,"n":6,"r":1839.48,"i":14,"u":100},{"d":"2026-08-16","g":29,"n":3,"r":556.77,"i":5,"u":100},{"d":"2026-08-17","g":40,"n":6,"r":1269.59,"i":15,"u":100},{"d":"2026-08-18","g":45,"n":9,"r":3008.5,"i":46,"u":100},{"d":"2026-08-19","g":31,"n":8,"r":869.42,"i":14,"u":100},{"d":"2026-08-20","g":57,"n":9,"r":1283.52,"i":14,"u":100},{"d":"2026-08-21","g":58,"n":17,"r":2905.32,"i":36,"u":100},{"d":"2026-08-22","g":142,"n":33,"r":4527.42,"i":58,"u":100},{"d":"2026-08-23","g":22,"n":1,"r":129.85,"i":3,"u":100},{"d":"2026-08-24","g":29,"n":6,"r":839.65,"i":9,"u":100},{"d":"2026-08-25","g":40,"n":4,"r":690.81,"i":6,"u":100},{"d":"2026-08-26","g":48,"n":7,"r":1040.5,"i":16,"u":100},{"d":"2026-08-27","g":53,"n":5,"r":1041.25,"i":9,"u":99.68},{"d":"2026-08-28","g":56,"n":14,"r":2301.93,"i":22,"u":99.35},{"d":"2026-08-29","g":62,"n":16,"r":1945.86,"i":24,"u":100},{"d":"2026-08-30","g":29,"n":4,"r":339.85,"i":5,"u":100},{"d":"2026-08-31","g":28,"n":5,"r":659.65,"i":7,"u":100},{"d":"2026-09-01","g":44,"n":10,"r":1339.25,"i":15,"u":98.38},{"d":"2026-09-02","g":39,"n":9,"r":2202.3,"i":16,"u":99.68},{"d":"2026-09-03","g":48,"n":11,"r":1949.1,"i":18,"u":99.35},{"d":"2026-09-04","g":44,"n":16,"r":2185.8,"i":30,"u":100},{"d":"2026-09-05","g":60,"n":13,"r":1750.1,"i":20,"u":100},{"d":"2026-09-06","g":27,"n":7,"r":949.4,"i":12,"u":100},{"d":"2026-09-07","g":34,"n":6,"r":1159.35,"i":13,"u":99.68},{"d":"2026-09-08","g":33,"n":9,"r":1419.3,"i":14,"u":99.35},{"d":"2026-09-09","g":31,"n":6,"r":740.44,"i":8,"u":99.67},{"d":"2026-09-10","g":36,"n":9,"r":1038.47,"i":15,"u":100},{"d":"2026-09-11","g":45,"n":8,"r":1149.31,"i":15,"u":100},{"d":"2026-09-12","g":72,"n":13,"r":2397.1,"i":20,"u":100},{"d":"2026-09-13","g":23,"n":2,"r":99.9,"i":2,"u":100},{"d":"2026-09-14","g":33,"n":3,"r":554.14,"i":9,"u":99.68},{"d":"2026-09-15","g":32,"n":12,"r":2667.42,"i":26,"u":100},{"d":"2026-09-16","g":35,"n":7,"r":1529.64,"i":21,"u":100},{"d":"2026-09-17","g":34,"n":18,"r":3212.13,"i":41,"u":100},{"d":"2026-09-18","g":35,"n":15,"r":4082.25,"i":43,"u":98.69},{"d":"2026-09-19","g":71,"n":25,"r":5247.23,"i":68,"u":99.67},{"d":"2026-09-20","g":18,"n":5,"r":560.61,"i":9,"u":98.54},{"d":"2026-09-21","g":24,"n":8,"r":2339.01,"i":21,"u":97.08},{"d":"2026-09-22","g":17,"n":5,"r":859.45,"i":11,"u":97.08},{"d":"2026-09-23","g":34,"n":9,"r":1151.85,"i":21,"u":96.43},{"d":"2026-09-24","g":25,"n":8,"r":1139.3,"i":14,"u":100},{"d":"2026-09-25","g":43,"n":13,"r":1768.95,"i":21,"u":100},{"d":"2026-09-26","g":53,"n":14,"r":2040.65,"i":19,"u":100},{"d":"2026-09-27","g":18,"n":7,"r":1095.31,"i":17,"u":100},{"d":"2026-09-28","g":28,"n":8,"r":1002.28,"i":15,"u":99.68},{"d":"2026-09-29","g":15,"n":4,"r":670.67,"i":7,"u":100},{"d":"2026-09-30","g":17,"n":6,"r":1504.89,"i":26,"u":99.67},{"d":"2026-10-01","g":37,"n":11,"r":2043.3,"i":19,"u":100},{"d":"2026-10-02","g":41,"n":21,"r":2958.38,"i":48,"u":96.1},{"d":"2026-10-03","g":40,"n":16,"r":2259.15,"i":27,"u":100},{"d":"2026-10-04","g":13,"n":2,"r":269.9,"i":2,"u":100},{"d":"2026-10-05","g":20,"n":6,"r":2066.1,"i":23,"u":100},{"d":"2026-10-06","g":36,"n":6,"r":909.55,"i":12,"u":100},{"d":"2026-10-07","g":24,"n":5,"r":1409.4,"i":16,"u":100},{"d":"2026-10-08","g":40,"n":17,"r":2572.72,"i":30,"u":100},{"d":"2026-10-09","g":30,"n":12,"r":3359.81,"i":31,"u":100},{"d":"2026-10-10","g":56,"n":17,"r":2538.8,"i":32,"u":100},{"d":"2026-10-11","g":25,"n":7,"r":959.52,"i":16,"u":100},{"d":"2026-10-12","g":34,"n":10,"r":2149.0,"i":25,"u":100},{"d":"2026-10-13","g":29,"n":7,"r":1139.35,"i":16,"u":100},{"d":"2026-10-14","g":22,"n":9,"r":1816.17,"i":21,"u":100},{"d":"2026-10-15","g":43,"n":10,"r":1309.25,"i":21,"u":100},{"d":"2026-10-16","g":32,"n":20,"r":2928.7,"i":31,"u":100},{"d":"2026-10-17","g":55,"n":18,"r":4071.36,"i":42,"u":100},{"d":"2026-10-18","g":18,"n":4,"r":429.8,"i":4,"u":100},{"d":"2026-10-19","g":20,"n":5,"r":559.7,"i":8,"u":100},{"d":"2026-10-20","g":22,"n":5,"r":1271.51,"i":15,"u":100},{"d":"2026-10-21","g":29,"n":6,"r":849.6,"i":9,"u":98.7},{"d":"2026-10-22","g":31,"n":5,"r":863.05,"i":10,"u":97.4},{"d":"2026-10-23","g":48,"n":11,"r":2038.85,"i":31,"u":98.05},{"d":"2026-10-24","g":43,"n":31,"r":4993.36,"i":71,"u":100},{"d":"2026-10-25","g":10,"n":1,"r":109.95,"i":2,"u":100}],"4873":[{"d":"2026-07-01","g":42,"n":8,"r":1529.25,"i":19,"u":100},{"d":"2026-07-02","g":39,"n":5,"r":1297.76,"i":17,"u":98.04},{"d":"2026-07-03","g":56,"n":10,"r":2818.9,"i":22,"u":100},{"d":"2026-07-04","g":59,"n":14,"r":3112.73,"i":27,"u":97.39},{"d":"2026-07-05","g":47,"n":3,"r":479.75,"i":5,"u":50.97},{"d":"2026-07-06","g":49,"n":5,"r":1129.45,"i":13,"u":99.35},{"d":"2026-07-07","g":37,"n":11,"r":1949.16,"i":18,"u":97.39},{"d":"2026-07-08","g":37,"n":7,"r":1898,"i":20,"u":97.06},{"d":"2026-07-09","g":43,"n":14,"r":1867.02,"i":20,"u":99.02},{"d":"2026-07-10","g":60,"n":15,"r":3226.89,"i":33,"u":99.67},{"d":"2026-07-11","g":58,"n":16,"r":2092.66,"i":30,"u":99.67},{"d":"2026-07-12","g":48,"n":3,"r":391.67,"i":7,"u":74.15},{"d":"2026-07-13","g":53,"n":8,"r":1677.33,"i":14,"u":99.67},{"d":"2026-07-14","g":49,"n":9,"r":2097.28,"i":18,"u":98.7},{"d":"2026-07-15","g":44,"n":11,"r":1288.31,"i":15,"u":98.37},{"d":"2026-07-16","g":62,"n":18,"r":3518.76,"i":32,"u":99.67},{"d":"2026-07-17","g":40,"n":10,"r":1811.91,"i":28,"u":100},{"d":"2026-07-18","g":68,"n":15,"r":2030.91,"i":24,"u":100},{"d":"2026-07-19","g":40,"n":6,"r":5016.44,"i":36,"u":84.88},{"d":"2026-07-20","g":36,"n":12,"r":2150.78,"i":25,"u":100},{"d":"2026-07-21","g":40,"n":12,"r":1953.51,"i":22,"u":99.02},{"d":"2026-07-22","g":38,"n":13,"r":2153.85,"i":28,"u":99.67},{"d":"2026-07-23","g":37,"n":12,"r":1941.91,"i":24,"u":99.67},{"d":"2026-07-24","g":64,"n":15,"r":2275.61,"i":29,"u":99.67},{"d":"2026-07-25","g":62,"n":12,"r":2688.55,"i":30,"u":100},{"d":"2026-07-26","g":37,"n":5,"r":1089.05,"i":9,"u":75.61},{"d":"2026-07-27","g":25,"n":9,"r":2083.73,"i":26,"u":99.35},{"d":"2026-07-28","g":26,"n":9,"r":859.47,"i":11,"u":99.67},{"d":"2026-07-29","g":32,"n":6,"r":1927.9,"i":20,"u":99.67},{"d":"2026-07-30","g":53,"n":9,"r":1460.37,"i":13,"u":99.67},{"d":"2026-07-31","g":52,"n":10,"r":2620.57,"i":23,"u":100},{"d":"2026-08-01","g":42,"n":12,"r":2677.62,"i":29,"u":100},{"d":"2026-08-02","g":50,"n":11,"r":3576.5,"i":31,"u":72.68},{"d":"2026-08-03","g":31,"n":10,"r":1537.97,"i":17,"u":100},{"d":"2026-08-04","g":25,"n":2,"r":1109.6,"i":8,"u":95.11},{"d":"2026-08-05","g":25,"n":5,"r":973.37,"i":11,"u":100},{"d":"2026-08-06","g":46,"n":8,"r":1345.37,"i":13,"u":99.67},{"d":"2026-08-07","g":57,"n":13,"r":2515.29,"i":22,"u":100},{"d":"2026-08-08","g":77,"n":22,"r":5337.41,"i":52,"u":100},{"d":"2026-08-09","g":25,"n":5,"r":572.55,"i":9,"u":85.37},{"d":"2026-08-10","g":34,"n":9,"r":1923.05,"i":19,"u":99.02},{"d":"2026-08-11","g":39,"n":12,"r":2409.75,"i":25,"u":100},{"d":"2026-08-12","g":25,"n":4,"r":2049.55,"i":9,"u":97.72},{"d":"2026-08-13","g":30,"n":4,"r":849.55,"i":9,"u":100},{"d":"2026-08-14","g":57,"n":12,"r":2978.9,"i":43,"u":100},{"d":"2026-08-15","g":58,"n":15,"r":2178.7,"i":40,"u":99.67},{"d":"2026-08-16","g":25,"n":3,"r":619.61,"i":13,"u":78.05},{"d":"2026-08-17","g":21,"n":6,"r":1626.45,"i":19,"u":99.67},{"d":"2026-08-18","g":32,"n":3,"r":389.85,"i":6,"u":100},{"d":"2026-08-19","g":29,"n":7,"r":1949.4,"i":25,"u":99.35},{"d":"2026-08-20","g":38,"n":11,"r":3524.45,"i":62,"u":100},{"d":"2026-08-21","g":64,"n":14,"r":2598.46,"i":37,"u":100},{"d":"2026-08-22","g":53,"n":12,"r":2140.95,"i":24,"u":100},{"d":"2026-08-23","g":37,"n":13,"r":2606.82,"i":29,"u":75.61},{"d":"2026-08-24","g":30,"n":3,"r":484.55,"i":7,"u":99.67},{"d":"2026-08-25","g":39,"n":6,"r":1659.45,"i":11,"u":100},{"d":"2026-08-26","g":37,"n":9,"r":2069.15,"i":17,"u":98.02},{"d":"2026-08-27","g":31,"n":7,"r":4783.55,"i":31,"u":99.67},{"d":"2026-08-28","g":66,"n":12,"r":2407.71,"i":29,"u":99.67},{"d":"2026-08-29","g":73,"n":19,"r":4217.71,"i":53,"u":100},{"d":"2026-08-30","g":38,"n":6,"r":659.65,"i":7,"u":75.12},{"d":"2026-08-31","g":20,"n":4,"r":1789.41,"i":14,"u":100},{"d":"2026-09-01","g":30,"n":6,"r":928.66,"i":10,"u":99.67},{"d":"2026-09-02","g":16,"n":6,"r":719.5,"i":10,"u":99.02},{"d":"2026-09-03","g":43,"n":11,"r":2097.81,"i":31,"u":99.02},{"d":"2026-09-04","g":42,"n":9,"r":3228.6,"i":28,"u":98.37},{"d":"2026-09-05","g":78,"n":15,"r":2404.91,"i":24,"u":100},{"d":"2026-09-06","g":27,"n":7,"r":961.51,"i":10,"u":70.24},{"d":"2026-09-07","g":51,"n":7,"r":2008.35,"i":14,"u":99.67},{"d":"2026-09-08","g":41,"n":5,"r":1407.55,"i":13,"u":94.46},{"d":"2026-09-09","g":15,"n":6,"r":1337.61,"i":12,"u":100},{"d":"2026-09-10","g":30,"n":9,"r":1340.52,"i":20,"u":100},{"d":"2026-09-11","g":43,"n":16,"r":2929.97,"i":48,"u":97.07},{"d":"2026-09-12","g":38,"n":9,"r":2129.36,"i":13,"u":98.7},{"d":"2026-09-13","g":26,"n":7,"r":1239.4,"i":13,"u":76.1},{"d":"2026-09-14","g":26,"n":5,"r":811.55,"i":13,"u":98.7},{"d":"2026-09-15","g":11,"n":3,"r":243.79,"i":5,"u":97.07},{"d":"2026-09-16","g":29,"n":4,"r":1070.5,"i":12,"u":98.7},{"d":"2026-09-17","g":21,"n":10,"r":3188.75,"i":30,"u":100},{"d":"2026-09-18","g":38,"n":12,"r":1568.1,"i":20,"u":96.69},{"d":"2026-09-19","g":67,"n":22,"r":4356.27,"i":53,"u":96.42},{"d":"2026-09-20","g":29,"n":8,"r":2101.1,"i":22,"u":75.61},{"d":"2026-09-21","g":20,"n":3,"r":1159.51,"i":11,"u":99.02},{"d":"2026-09-22","g":28,"n":7,"r":939.3,"i":14,"u":98.05},{"d":"2026-09-23","g":18,"n":4,"r":739.56,"i":10,"u":96.42},{"d":"2026-09-24","g":26,"n":10,"r":2199.24,"i":18,"u":97.39},{"d":"2026-09-25","g":43,"n":10,"r":1921.08,"i":22,"u":99.03},{"d":"2026-09-26","g":32,"n":11,"r":3469.46,"i":32,"u":99.67},{"d":"2026-09-27","g":21,"n":1,"r":239.9,"i":2,"u":96.1},{"d":"2026-09-28","g":20,"n":4,"r":1219.35,"i":13,"u":100},{"d":"2026-09-29","g":17,"n":5,"r":789.63,"i":9,"u":97.39},{"d":"2026-09-30","g":16,"n":7,"r":2102.1,"i":18,"u":98.7},{"d":"2026-10-01","g":13,"n":7,"r":1178.35,"i":17,"u":97.36},{"d":"2026-10-02","g":43,"n":15,"r":3708.2,"i":49,"u":96.42},{"d":"2026-10-03","g":39,"n":19,"r":5722.91,"i":70,"u":100},{"d":"2026-10-04","g":18,"n":6,"r":1749.4,"i":15,"u":100},{"d":"2026-10-05","g":19,"n":5,"r":759.6,"i":10,"u":98.7},{"d":"2026-10-06","g":33,"n":6,"r":2123.22,"i":19,"u":97.72},{"d":"2026-10-07","g":33,"n":10,"r":1559.2,"i":20,"u":98.05},{"d":"2026-10-08","g":34,"n":4,"r":749.5,"i":14,"u":98.37},{"d":"2026-10-09","g":27,"n":15,"r":3288.4,"i":44,"u":97.07},{"d":"2026-10-10","g":45,"n":15,"r":2447.2,"i":33,"u":100},{"d":"2026-10-11","g":34,"n":11,"r":2381.95,"i":32,"u":100},{"d":"2026-10-12","g":43,"n":14,"r":3585.2,"i":46,"u":99.67},{"d":"2026-10-13","g":26,"n":9,"r":1639.36,"i":23,"u":100},{"d":"2026-10-14","g":23,"n":12,"r":3161.95,"i":32,"u":99.67},{"d":"2026-10-15","g":35,"n":14,"r":3166.61,"i":37,"u":95.77},{"d":"2026-10-16","g":35,"n":7,"r":1530.22,"i":21,"u":98.7},{"d":"2026-10-17","g":39,"n":10,"r":1475.08,"i":28,"u":100},{"d":"2026-10-18","g":36,"n":11,"r":2911.9,"i":38,"u":99.35},{"d":"2026-10-19","g":26,"n":2,"r":209.9,"i":3,"u":93.49},{"d":"2026-10-20","g":22,"n":10,"r":2724.23,"i":22,"u":96.42},{"d":"2026-10-21","g":20,"n":8,"r":1469.35,"i":19,"u":99.02},{"d":"2026-10-22","g":25,"n":10,"r":1359.3,"i":18,"u":99.67},{"d":"2026-10-23","g":31,"n":8,"r":1399.1,"i":18,"u":99.67},{"d":"2026-10-24","g":42,"n":11,"r":2942.62,"i":34,"u":100},{"d":"2026-10-25","g":19,"n":7,"r":1464.18,"i":17,"u":99.35}],"5188":[{"d":"2026-07-01","g":37,"n":6,"r":1284.55,"i":11,"u":99.59},{"d":"2026-07-02","g":41,"n":6,"r":1047.85,"i":7,"u":100},{"d":"2026-07-03","g":51,"n":16,"r":5015.7,"i":46,"u":99.59},{"d":"2026-07-04","g":52,"n":17,"r":3063.8,"i":28,"u":100},{"d":"2026-07-05","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-06","g":58,"n":8,"r":1795.05,"i":19,"u":99.8},{"d":"2026-07-07","g":62,"n":18,"r":3982.5,"i":37,"u":99.59},{"d":"2026-07-08","g":11,"n":0,"r":0,"i":0,"u":99.59},{"d":"2026-07-09","g":54,"n":15,"r":2076.67,"i":24,"u":99.59},{"d":"2026-07-10","g":58,"n":12,"r":3238.1,"i":38,"u":99.8},{"d":"2026-07-11","g":66,"n":15,"r":3629.96,"i":49,"u":100},{"d":"2026-07-12","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-13","g":47,"n":8,"r":974.45,"i":14,"u":98.98},{"d":"2026-07-14","g":40,"n":8,"r":1601.5,"i":16,"u":98.56},{"d":"2026-07-15","g":44,"n":9,"r":1445.91,"i":14,"u":93.44},{"d":"2026-07-16","g":49,"n":15,"r":3731.27,"i":39,"u":99.8},{"d":"2026-07-17","g":97,"n":19,"r":3368.28,"i":50,"u":99.8},{"d":"2026-07-18","g":53,"n":13,"r":2128.75,"i":27,"u":100},{"d":"2026-07-19","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-20","g":65,"n":7,"r":675.64,"i":8,"u":100},{"d":"2026-07-21","g":63,"n":5,"r":819.47,"i":11,"u":100},{"d":"2026-07-22","g":78,"n":9,"r":1848.16,"i":19,"u":100},{"d":"2026-07-23","g":71,"n":8,"r":4092.83,"i":29,"u":99.18},{"d":"2026-07-24","g":99,"n":9,"r":1332.54,"i":15,"u":98.16},{"d":"2026-07-25","g":55,"n":11,"r":1218.67,"i":22,"u":97.52},{"d":"2026-07-26","g":0,"n":2,"r":249.9,"i":2,"u":100},{"d":"2026-07-27","g":62,"n":0,"r":0,"i":0,"u":99.8},{"d":"2026-07-28","g":65,"n":0,"r":0,"i":0,"u":99.59},{"d":"2026-07-29","g":57,"n":25,"r":4787.22,"i":81,"u":99.39},{"d":"2026-07-30","g":46,"n":9,"r":1874.43,"i":16,"u":99.18},{"d":"2026-07-31","g":62,"n":15,"r":3222.86,"i":48,"u":97.13},{"d":"2026-08-01","g":44,"n":12,"r":1670.94,"i":22,"u":99.65},{"d":"2026-08-02","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-03","g":55,"n":7,"r":1235.33,"i":14,"u":99.39},{"d":"2026-08-04","g":43,"n":10,"r":2291.65,"i":23,"u":100},{"d":"2026-08-05","g":68,"n":14,"r":3964.25,"i":36,"u":99.8},{"d":"2026-08-06","g":51,"n":11,"r":2410.85,"i":25,"u":99.39},{"d":"2026-08-07","g":76,"n":21,"r":5279.22,"i":51,"u":99.59},{"d":"2026-08-08","g":54,"n":6,"r":1269.6,"i":8,"u":99.65},{"d":"2026-08-09","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-10","g":46,"n":5,"r":1267.55,"i":10,"u":99.8},{"d":"2026-08-11","g":47,"n":8,"r":2272.3,"i":16,"u":100},{"d":"2026-08-12","g":58,"n":11,"r":2023.25,"i":19,"u":99.39},{"d":"2026-08-13","g":61,"n":13,"r":2021.25,"i":37,"u":98.98},{"d":"2026-08-14","g":23,"n":5,"r":1687.4,"i":24,"u":99.59},{"d":"2026-08-15","g":55,"n":19,"r":2943.76,"i":33,"u":98.94},{"d":"2026-08-16","g":0,"n":1,"r":29.95,"i":1,"u":100},{"d":"2026-08-17","g":45,"n":9,"r":1780.96,"i":26,"u":100},{"d":"2026-08-18","g":55,"n":8,"r":2364.76,"i":28,"u":100},{"d":"2026-08-19","g":60,"n":10,"r":1870.7,"i":31,"u":99.59},{"d":"2026-08-20","g":35,"n":6,"r":2281.25,"i":27,"u":100},{"d":"2026-08-21","g":57,"n":12,"r":3199.17,"i":35,"u":99.38},{"d":"2026-08-22","g":42,"n":8,"r":949.45,"i":11,"u":98.94},{"d":"2026-08-23","g":0,"n":1,"r":79.95,"i":1,"u":100},{"d":"2026-08-24","g":29,"n":6,"r":1421.15,"i":13,"u":99.8},{"d":"2026-08-25","g":34,"n":8,"r":1945.02,"i":22,"u":99.39},{"d":"2026-08-26","g":71,"n":5,"r":1062.55,"i":10,"u":98.97},{"d":"2026-08-27","g":25,"n":7,"r":1649.21,"i":33,"u":98.77},{"d":"2026-08-28","g":67,"n":13,"r":2098.8,"i":23,"u":98.98},{"d":"2026-08-29","g":25,"n":11,"r":2978.75,"i":34,"u":99.65},{"d":"2026-08-30","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-31","g":42,"n":12,"r":2337.97,"i":34,"u":99.59},{"d":"2026-09-01","g":41,"n":5,"r":1049.5,"i":10,"u":98.77},{"d":"2026-09-02","g":59,"n":6,"r":1003.55,"i":11,"u":62.7},{"d":"2026-09-03","g":47,"n":14,"r":2158.8,"i":24,"u":99.59},{"d":"2026-09-04","g":68,"n":11,"r":1867.6,"i":20,"u":99.59},{"d":"2026-09-05","g":57,"n":12,"r":2559.85,"i":25,"u":98.94},{"d":"2026-09-06","g":0,"n":4,"r":519.65,"i":7,"u":100},{"d":"2026-09-07","g":0,"n":0,"r":0.0,"i":0,"u":99.8},{"d":"2026-09-08","g":46,"n":8,"r":1704.43,"i":20,"u":99.59},{"d":"2026-09-09","g":71,"n":8,"r":1439.31,"i":21,"u":99.18},{"d":"2026-09-10","g":48,"n":8,"r":1659.16,"i":18,"u":99.39},{"d":"2026-09-11","g":53,"n":10,"r":1243.4,"i":16,"u":99.8},{"d":"2026-09-12","g":37,"n":6,"r":1231.56,"i":14,"u":98.23},{"d":"2026-09-13","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-14","g":37,"n":9,"r":1900.7,"i":20,"u":97.34},{"d":"2026-09-15","g":49,"n":8,"r":3163.04,"i":35,"u":98.36},{"d":"2026-09-16","g":61,"n":6,"r":1992.96,"i":15,"u":98.98},{"d":"2026-09-17","g":34,"n":11,"r":1875.82,"i":32,"u":99.39},{"d":"2026-09-18","g":33,"n":15,"r":3434.65,"i":46,"u":99.18},{"d":"2026-09-19","g":22,"n":9,"r":2804.33,"i":27,"u":99.65},{"d":"2026-09-20","g":0,"n":1,"r":107.95,"i":1,"u":100},{"d":"2026-09-21","g":13,"n":1,"r":279.9,"i":2,"u":98.56},{"d":"2026-09-22","g":36,"n":9,"r":2387.84,"i":26,"u":94.84},{"d":"2026-09-23","g":22,"n":4,"r":1139.65,"i":7,"u":98.56},{"d":"2026-09-24","g":32,"n":6,"r":966.1,"i":8,"u":99.59},{"d":"2026-09-25","g":46,"n":6,"r":1119.4,"i":12,"u":99.39},{"d":"2026-09-26","g":19,"n":5,"r":2379.2,"i":18,"u":100},{"d":"2026-09-27","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-28","g":30,"n":0,"r":0.0,"i":0,"u":86.48},{"d":"2026-09-29","g":36,"n":0,"r":0.0,"i":0,"u":98.98},{"d":"2026-09-30","g":28,"n":14,"r":2611.1,"i":30,"u":99.59},{"d":"2026-10-01","g":23,"n":4,"r":651.75,"i":7,"u":99.18},{"d":"2026-10-02","g":26,"n":7,"r":719.72,"i":10,"u":94.89},{"d":"2026-10-03","g":16,"n":5,"r":341.77,"i":7,"u":99.29},{"d":"2026-10-04","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-05","g":28,"n":4,"r":949.55,"i":10,"u":96.71},{"d":"2026-10-06","g":31,"n":9,"r":1932.25,"i":21,"u":95.9},{"d":"2026-10-07","g":41,"n":7,"r":2299.25,"i":16,"u":57.34},{"d":"2026-10-08","g":32,"n":13,"r":2375.21,"i":24,"u":100},{"d":"2026-10-09","g":37,"n":14,"r":2092.2,"i":31,"u":98.16},{"d":"2026-10-10","g":45,"n":9,"r":4012.36,"i":61,"u":98.94},{"d":"2026-10-11","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-12","g":0,"n":0,"r":0.0,"i":0,"u":99.59},{"d":"2026-10-13","g":40,"n":6,"r":1309.2,"i":18,"u":95.9},{"d":"2026-10-14","g":30,"n":14,"r":3278.45,"i":34,"u":98.98},{"d":"2026-10-15","g":47,"n":7,"r":1395.2,"i":27,"u":100},{"d":"2026-10-16","g":28,"n":10,"r":1276.3,"i":20,"u":99.39},{"d":"2026-10-17","g":31,"n":8,"r":1817.5,"i":20,"u":99.29},{"d":"2026-10-18","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-19","g":22,"n":11,"r":1449.3,"i":28,"u":97.95},{"d":"2026-10-20","g":26,"n":5,"r":695.75,"i":8,"u":98.77},{"d":"2026-10-21","g":28,"n":8,"r":2028.3,"i":17,"u":98.36},{"d":"2026-10-22","g":29,"n":8,"r":1737.15,"i":22,"u":97.75},{"d":"2026-10-23","g":30,"n":13,"r":2863.85,"i":27,"u":83.06},{"d":"2026-10-24","g":39,"n":7,"r":2197.0,"i":21,"u":63.71},{"d":"2026-10-25","g":0,"n":0,"r":0.0,"i":0,"u":100}],"5190":[{"d":"2026-07-01","g":39,"n":13,"r":1581.29,"i":19,"u":100},{"d":"2026-07-02","g":77,"n":12,"r":2279.81,"i":23,"u":100},{"d":"2026-07-03","g":72,"n":19,"r":3254.5,"i":30,"u":100},{"d":"2026-07-04","g":62,"n":22,"r":4256,"i":52,"u":100},{"d":"2026-07-05","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-06","g":27,"n":3,"r":267.85,"i":5,"u":99.18},{"d":"2026-07-07","g":57,"n":11,"r":2984.95,"i":27,"u":100},{"d":"2026-07-08","g":40,"n":10,"r":2508.56,"i":30,"u":100},{"d":"2026-07-09","g":52,"n":14,"r":2173.51,"i":23,"u":99.59},{"d":"2026-07-10","g":75,"n":20,"r":3283.2,"i":38,"u":100},{"d":"2026-07-11","g":73,"n":20,"r":3997.66,"i":42,"u":100},{"d":"2026-07-12","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-13","g":43,"n":6,"r":915.75,"i":9,"u":99.59},{"d":"2026-07-14","g":54,"n":8,"r":979.7,"i":12,"u":100},{"d":"2026-07-15","g":65,"n":9,"r":1044.35,"i":15,"u":100},{"d":"2026-07-16","g":75,"n":18,"r":4697.16,"i":50,"u":99.59},{"d":"2026-07-17","g":73,"n":19,"r":3046.22,"i":41,"u":100},{"d":"2026-07-18","g":99,"n":35,"r":5136.2,"i":62,"u":100},{"d":"2026-07-19","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-20","g":55,"n":17,"r":2361.53,"i":29,"u":100},{"d":"2026-07-21","g":66,"n":14,"r":3266.43,"i":34,"u":100},{"d":"2026-07-22","g":66,"n":14,"r":2428.87,"i":29,"u":99.59},{"d":"2026-07-23","g":62,"n":20,"r":4420.85,"i":50,"u":97.54},{"d":"2026-07-24","g":55,"n":14,"r":3108.74,"i":29,"u":99.59},{"d":"2026-07-25","g":53,"n":13,"r":2065.2,"i":27,"u":98.58},{"d":"2026-07-26","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-27","g":50,"n":-1,"r":-79.96,"i":1,"u":100},{"d":"2026-07-28","g":61,"n":0,"r":0,"i":0,"u":97.95},{"d":"2026-07-29","g":44,"n":31,"r":6758.58,"i":73,"u":97.13},{"d":"2026-07-30","g":52,"n":14,"r":2903.3,"i":38,"u":97.95},{"d":"2026-07-31","g":76,"n":19,"r":3247.91,"i":36,"u":100},{"d":"2026-08-01","g":81,"n":24,"r":4324.88,"i":50,"u":100},{"d":"2026-08-02","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-03","g":60,"n":14,"r":2480.64,"i":28,"u":99.18},{"d":"2026-08-04","g":62,"n":12,"r":2310.32,"i":22,"u":98.77},{"d":"2026-08-05","g":63,"n":11,"r":2555.3,"i":25,"u":100},{"d":"2026-08-06","g":84,"n":17,"r":2280.85,"i":27,"u":100},{"d":"2026-08-07","g":76,"n":24,"r":5161.6,"i":50,"u":100},{"d":"2026-08-08","g":152,"n":44,"r":6895.75,"i":85,"u":100},{"d":"2026-08-09","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-10","g":53,"n":7,"r":1147.55,"i":13,"u":99.59},{"d":"2026-08-11","g":53,"n":14,"r":2340.16,"i":30,"u":100},{"d":"2026-08-12","g":49,"n":17,"r":3173.03,"i":41,"u":100},{"d":"2026-08-13","g":52,"n":5,"r":1846.65,"i":17,"u":100},{"d":"2026-08-14","g":67,"n":25,"r":4125.64,"i":47,"u":100},{"d":"2026-08-15","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-16","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-17","g":54,"n":11,"r":105.77,"i":7,"u":100},{"d":"2026-08-18","g":50,"n":9,"r":3857.61,"i":55,"u":100},{"d":"2026-08-19","g":68,"n":12,"r":2183.1,"i":29,"u":100},{"d":"2026-08-20","g":43,"n":14,"r":3375.58,"i":34,"u":100},{"d":"2026-08-21","g":83,"n":34,"r":5350.83,"i":61,"u":100},{"d":"2026-08-22","g":56,"n":25,"r":6284.05,"i":61,"u":100},{"d":"2026-08-23","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-24","g":54,"n":11,"r":1994.29,"i":22,"u":97.95},{"d":"2026-08-25","g":63,"n":14,"r":3218.56,"i":36,"u":100},{"d":"2026-08-26","g":52,"n":10,"r":1829.87,"i":20,"u":100},{"d":"2026-08-27","g":54,"n":16,"r":2250.82,"i":30,"u":100},{"d":"2026-08-28","g":69,"n":13,"r":2788.34,"i":52,"u":99.59},{"d":"2026-08-29","g":66,"n":26,"r":7041.85,"i":81,"u":100},{"d":"2026-08-30","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-31","g":53,"n":8,"r":1670.04,"i":22,"u":100},{"d":"2026-09-01","g":26,"n":7,"r":1797.17,"i":21,"u":100},{"d":"2026-09-02","g":57,"n":8,"r":809.45,"i":11,"u":100},{"d":"2026-09-03","g":64,"n":17,"r":3015.26,"i":40,"u":100},{"d":"2026-09-04","g":69,"n":30,"r":5519.37,"i":65,"u":99.59},{"d":"2026-09-05","g":74,"n":25,"r":4583.75,"i":59,"u":100},{"d":"2026-09-06","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-07","g":5,"n":0,"r":0.0,"i":0,"u":98.77},{"d":"2026-09-08","g":71,"n":16,"r":3217.1,"i":35,"u":100},{"d":"2026-09-09","g":57,"n":21,"r":4201.98,"i":46,"u":100},{"d":"2026-09-10","g":48,"n":13,"r":3572.02,"i":52,"u":100},{"d":"2026-09-11","g":48,"n":18,"r":2806.86,"i":34,"u":100},{"d":"2026-09-12","g":104,"n":36,"r":6683.89,"i":75,"u":100},{"d":"2026-09-13","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-14","g":53,"n":12,"r":2265.8,"i":31,"u":100},{"d":"2026-09-15","g":66,"n":22,"r":3959.0,"i":48,"u":100},{"d":"2026-09-16","g":62,"n":25,"r":4294.62,"i":55,"u":100},{"d":"2026-09-17","g":68,"n":18,"r":2618.97,"i":39,"u":100},{"d":"2026-09-18","g":79,"n":22,"r":3368.83,"i":49,"u":100},{"d":"2026-09-19","g":89,"n":27,"r":5658.08,"i":67,"u":98.58},{"d":"2026-09-20","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-21","g":56,"n":1,"r":109.9,"i":2,"u":99.59},{"d":"2026-09-22","g":54,"n":16,"r":2274.55,"i":32,"u":99.59},{"d":"2026-09-23","g":39,"n":12,"r":2332.93,"i":29,"u":100},{"d":"2026-09-24","g":45,"n":11,"r":2631.48,"i":42,"u":97.54},{"d":"2026-09-25","g":63,"n":26,"r":5236.41,"i":52,"u":92.24},{"d":"2026-09-26","g":61,"n":12,"r":1375.4,"i":16,"u":100},{"d":"2026-09-27","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-28","g":44,"n":13,"r":2566.65,"i":32,"u":100},{"d":"2026-09-29","g":40,"n":13,"r":3177.15,"i":29,"u":99.59},{"d":"2026-09-30","g":47,"n":18,"r":2182.9,"i":38,"u":100},{"d":"2026-10-01","g":46,"n":10,"r":1736.7,"i":21,"u":99.18},{"d":"2026-10-02","g":57,"n":8,"r":1551.06,"i":29,"u":95.51},{"d":"2026-10-03","g":68,"n":25,"r":4098.22,"i":55,"u":100},{"d":"2026-10-04","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-05","g":49,"n":12,"r":2143.39,"i":32,"u":100},{"d":"2026-10-06","g":54,"n":11,"r":2114.19,"i":36,"u":99.18},{"d":"2026-10-07","g":81,"n":17,"r":3802.24,"i":54,"u":99.59},{"d":"2026-10-08","g":52,"n":15,"r":3220.26,"i":44,"u":100},{"d":"2026-10-09","g":72,"n":23,"r":4017.86,"i":56,"u":100},{"d":"2026-10-10","g":126,"n":30,"r":5060.1,"i":77,"u":100},{"d":"2026-10-11","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-12","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-13","g":51,"n":16,"r":2748.56,"i":35,"u":98.36},{"d":"2026-10-14","g":56,"n":17,"r":3016.82,"i":41,"u":97.95},{"d":"2026-10-15","g":65,"n":20,"r":4161.16,"i":53,"u":100},{"d":"2026-10-16","g":76,"n":24,"r":3739.8,"i":48,"u":100},{"d":"2026-10-17","g":139,"n":38,"r":6157.17,"i":93,"u":100},{"d":"2026-10-18","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-19","g":42,"n":4,"r":369.75,"i":6,"u":99.18},{"d":"2026-10-20","g":42,"n":14,"r":2136.2,"i":33,"u":100},{"d":"2026-10-21","g":51,"n":15,"r":3076.27,"i":51,"u":100},{"d":"2026-10-22","g":71,"n":18,"r":3028.4,"i":39,"u":97.54},{"d":"2026-10-23","g":59,"n":21,"r":3937.85,"i":43,"u":96.72},{"d":"2026-10-24","g":60,"n":29,"r":4015.41,"i":48,"u":100},{"d":"2026-10-25","g":0,"n":0,"r":0.0,"i":0,"u":100}],"5206":[{"d":"2026-07-01","g":48,"n":4,"r":569.65,"i":7,"u":97.72},{"d":"2026-07-02","g":39,"n":8,"r":1619.1,"i":18,"u":100},{"d":"2026-07-03","g":40,"n":11,"r":2069.1,"i":18,"u":100},{"d":"2026-07-04","g":77,"n":17,"r":2044.65,"i":27,"u":100},{"d":"2026-07-05","g":20,"n":2,"r":189.9,"i":2,"u":100},{"d":"2026-07-06","g":51,"n":12,"r":2049.76,"i":23,"u":100},{"d":"2026-07-07","g":44,"n":5,"r":641.56,"i":9,"u":99.67},{"d":"2026-07-08","g":46,"n":6,"r":829.3,"i":14,"u":100},{"d":"2026-07-09","g":64,"n":19,"r":3159.95,"i":37,"u":100},{"d":"2026-07-10","g":71,"n":15,"r":2374.12,"i":32,"u":98.05},{"d":"2026-07-11","g":128,"n":36,"r":3217.57,"i":49,"u":100},{"d":"2026-07-12","g":53,"n":2,"r":253.89,"i":3,"u":99.68},{"d":"2026-07-13","g":30,"n":4,"r":544.77,"i":5,"u":99.35},{"d":"2026-07-14","g":48,"n":7,"r":710.67,"i":13,"u":100},{"d":"2026-07-15","g":58,"n":11,"r":1611.96,"i":17,"u":98.37},{"d":"2026-07-16","g":41,"n":9,"r":1824.8,"i":21,"u":100},{"d":"2026-07-17","g":52,"n":10,"r":1535.23,"i":17,"u":99.67},{"d":"2026-07-18","g":81,"n":16,"r":1991.11,"i":25,"u":99.35},{"d":"2026-07-19","g":39,"n":6,"r":762.52,"i":11,"u":99.03},{"d":"2026-07-20","g":44,"n":8,"r":812.58,"i":9,"u":99.02},{"d":"2026-07-21","g":54,"n":6,"r":572.62,"i":8,"u":100},{"d":"2026-07-22","g":52,"n":10,"r":1281.13,"i":20,"u":100},{"d":"2026-07-23","g":57,"n":10,"r":1654.37,"i":17,"u":100},{"d":"2026-07-24","g":55,"n":13,"r":3049.91,"i":37,"u":99.67},{"d":"2026-07-25","g":68,"n":15,"r":1902.54,"i":25,"u":98.05},{"d":"2026-07-26","g":53,"n":5,"r":519.56,"i":9,"u":99.68},{"d":"2026-07-27","g":49,"n":5,"r":322.9,"i":6,"u":99.35},{"d":"2026-07-28","g":38,"n":3,"r":369.7,"i":6,"u":99.35},{"d":"2026-07-29","g":37,"n":5,"r":676.66,"i":9,"u":98.69},{"d":"2026-07-30","g":44,"n":9,"r":1072.49,"i":12,"u":99.67},{"d":"2026-07-31","g":72,"n":13,"r":2602.86,"i":32,"u":100},{"d":"2026-08-01","g":74,"n":21,"r":2939.63,"i":40,"u":100},{"d":"2026-08-02","g":47,"n":11,"r":2408.8,"i":24,"u":100},{"d":"2026-08-03","g":33,"n":6,"r":2243.06,"i":19,"u":100},{"d":"2026-08-04","g":27,"n":8,"r":1112.26,"i":17,"u":96.42},{"d":"2026-08-05","g":50,"n":6,"r":937.43,"i":9,"u":100},{"d":"2026-08-06","g":41,"n":10,"r":1488.18,"i":17,"u":100},{"d":"2026-08-07","g":50,"n":17,"r":2577.24,"i":37,"u":99.67},{"d":"2026-08-08","g":81,"n":22,"r":3324.2,"i":38,"u":100},{"d":"2026-08-09","g":41,"n":11,"r":2306.97,"i":23,"u":100},{"d":"2026-08-10","g":27,"n":6,"r":831.5,"i":8,"u":97.39},{"d":"2026-08-11","g":36,"n":2,"r":179.85,"i":3,"u":100},{"d":"2026-08-12","g":37,"n":5,"r":743.65,"i":11,"u":99.67},{"d":"2026-08-13","g":33,"n":11,"r":1874.44,"i":36,"u":99.67},{"d":"2026-08-14","g":43,"n":16,"r":2139.87,"i":35,"u":100},{"d":"2026-08-15","g":93,"n":31,"r":3992.54,"i":62,"u":100},{"d":"2026-08-16","g":72,"n":9,"r":1269.27,"i":17,"u":98.7},{"d":"2026-08-17","g":27,"n":5,"r":494.7,"i":6,"u":100},{"d":"2026-08-18","g":43,"n":12,"r":2668.72,"i":28,"u":100},{"d":"2026-08-19","g":50,"n":7,"r":917.46,"i":11,"u":99.35},{"d":"2026-08-20","g":35,"n":6,"r":749.46,"i":12,"u":100},{"d":"2026-08-21","g":46,"n":16,"r":2369.48,"i":34,"u":100},{"d":"2026-08-22","g":86,"n":15,"r":2469.7,"i":30,"u":100},{"d":"2026-08-23","g":62,"n":8,"r":1595.3,"i":16,"u":100},{"d":"2026-08-24","g":14,"n":1,"r":289.95,"i":1,"u":99.35},{"d":"2026-08-25","g":54,"n":7,"r":1113.36,"i":16,"u":98.69},{"d":"2026-08-26","g":42,"n":9,"r":1191.42,"i":18,"u":100},{"d":"2026-08-27","g":25,"n":4,"r":1039.55,"i":9,"u":100},{"d":"2026-08-28","g":56,"n":13,"r":1833.03,"i":27,"u":100},{"d":"2026-08-29","g":99,"n":16,"r":3597.47,"i":34,"u":100},{"d":"2026-08-30","g":64,"n":9,"r":1289.11,"i":15,"u":100},{"d":"2026-08-31","g":24,"n":5,"r":919.65,"i":7,"u":100},{"d":"2026-09-01","g":51,"n":12,"r":1758.91,"i":23,"u":100},{"d":"2026-09-02","g":35,"n":9,"r":1475.52,"i":17,"u":100},{"d":"2026-09-03","g":29,"n":8,"r":1433.11,"i":17,"u":100},{"d":"2026-09-04","g":48,"n":10,"r":1525.15,"i":23,"u":100},{"d":"2026-09-05","g":98,"n":18,"r":2314.95,"i":29,"u":100},{"d":"2026-09-06","g":71,"n":9,"r":1130.74,"i":22,"u":99.03},{"d":"2026-09-07","g":78,"n":14,"r":1638.05,"i":31,"u":98.37},{"d":"2026-09-08","g":47,"n":7,"r":989.4,"i":12,"u":71.75},{"d":"2026-09-09","g":30,"n":6,"r":629.55,"i":9,"u":100},{"d":"2026-09-10","g":34,"n":7,"r":937.9,"i":10,"u":100},{"d":"2026-09-11","g":58,"n":19,"r":3608.11,"i":43,"u":96.74},{"d":"2026-09-12","g":112,"n":26,"r":5244.45,"i":65,"u":100},{"d":"2026-09-13","g":66,"n":10,"r":1639.66,"i":27,"u":99.68},{"d":"2026-09-14","g":29,"n":3,"r":521.12,"i":8,"u":100},{"d":"2026-09-15","g":39,"n":4,"r":848.61,"i":9,"u":98.37},{"d":"2026-09-16","g":33,"n":6,"r":1079.67,"i":7,"u":99.67},{"d":"2026-09-17","g":43,"n":8,"r":1588.93,"i":26,"u":100},{"d":"2026-09-18","g":46,"n":13,"r":1630.02,"i":24,"u":99.67},{"d":"2026-09-19","g":88,"n":27,"r":4010.08,"i":50,"u":97.39},{"d":"2026-09-20","g":68,"n":20,"r":3093.91,"i":40,"u":99.68},{"d":"2026-09-21","g":24,"n":7,"r":1409.19,"i":18,"u":100},{"d":"2026-09-22","g":28,"n":4,"r":614.85,"i":5,"u":99.67},{"d":"2026-09-23","g":23,"n":5,"r":559.65,"i":7,"u":96.74},{"d":"2026-09-24","g":44,"n":15,"r":3921.05,"i":41,"u":95.77},{"d":"2026-09-25","g":40,"n":10,"r":1069.45,"i":11,"u":99.67},{"d":"2026-09-26","g":67,"n":13,"r":1945.31,"i":28,"u":98.7},{"d":"2026-09-27","g":40,"n":8,"r":1457.45,"i":15,"u":100},{"d":"2026-09-28","g":33,"n":8,"r":3038.95,"i":21,"u":100},{"d":"2026-09-29","g":24,"n":8,"r":1373.5,"i":12,"u":100},{"d":"2026-09-30","g":45,"n":6,"r":1459.1,"i":18,"u":100},{"d":"2026-10-01","g":34,"n":9,"r":1529.25,"i":24,"u":99.67},{"d":"2026-10-02","g":75,"n":16,"r":1888.89,"i":36,"u":96.09},{"d":"2026-10-03","g":74,"n":24,"r":3945.55,"i":55,"u":100},{"d":"2026-10-04","g":46,"n":7,"r":1687.72,"i":22,"u":100},{"d":"2026-10-05","g":22,"n":5,"r":669.7,"i":10,"u":100},{"d":"2026-10-06","g":39,"n":4,"r":779.55,"i":11,"u":100},{"d":"2026-10-07","g":40,"n":8,"r":867.6,"i":16,"u":90.88},{"d":"2026-10-08","g":35,"n":8,"r":1099.35,"i":18,"u":100},{"d":"2026-10-09","g":40,"n":8,"r":1275.55,"i":20,"u":98.05},{"d":"2026-10-10","g":99,"n":35,"r":4423.38,"i":82,"u":100},{"d":"2026-10-11","g":63,"n":14,"r":2435.45,"i":38,"u":100},{"d":"2026-10-12","g":59,"n":19,"r":3468.45,"i":42,"u":99.35},{"d":"2026-10-13","g":33,"n":13,"r":1568.2,"i":25,"u":100},{"d":"2026-10-14","g":51,"n":15,"r":2248.8,"i":38,"u":100},{"d":"2026-10-15","g":27,"n":10,"r":1729.25,"i":18,"u":100},{"d":"2026-10-16","g":29,"n":8,"r":729.45,"i":13,"u":100},{"d":"2026-10-17","g":52,"n":19,"r":2525.86,"i":28,"u":100},{"d":"2026-10-18","g":48,"n":5,"r":963.65,"i":9,"u":100},{"d":"2026-10-19","g":59,"n":8,"r":1049.3,"i":14,"u":100},{"d":"2026-10-20","g":47,"n":12,"r":2004.07,"i":25,"u":56.35},{"d":"2026-10-21","g":32,"n":9,"r":1878.2,"i":22,"u":99.67},{"d":"2026-10-22","g":42,"n":13,"r":1451.3,"i":20,"u":97.72},{"d":"2026-10-23","g":53,"n":16,"r":2018.95,"i":21,"u":98.05},{"d":"2026-10-24","g":64,"n":19,"r":2435.8,"i":28,"u":100},{"d":"2026-10-25","g":34,"n":5,"r":499.7,"i":6,"u":100}],"5245":[{"d":"2026-07-01","g":57,"n":4,"r":833.6,"i":10,"u":100},{"d":"2026-07-02","g":59,"n":5,"r":799.6,"i":8,"u":98.37},{"d":"2026-07-03","g":76,"n":13,"r":2631.25,"i":23,"u":97.72},{"d":"2026-07-04","g":100,"n":13,"r":1779.11,"i":19,"u":100},{"d":"2026-07-05","g":20,"n":1,"r":309.85,"i":3,"u":100},{"d":"2026-07-06","g":85,"n":8,"r":1240.51,"i":15,"u":100},{"d":"2026-07-07","g":64,"n":2,"r":119.9,"i":2,"u":98.37},{"d":"2026-07-08","g":73,"n":11,"r":1389.16,"i":18,"u":100},{"d":"2026-07-09","g":91,"n":6,"r":479.7,"i":6,"u":100},{"d":"2026-07-10","g":120,"n":12,"r":2299.99,"i":21,"u":99.67},{"d":"2026-07-11","g":108,"n":11,"r":1641.17,"i":17,"u":100},{"d":"2026-07-12","g":115,"n":7,"r":777,"i":12,"u":100},{"d":"2026-07-13","g":64,"n":6,"r":703.62,"i":8,"u":100},{"d":"2026-07-14","g":64,"n":10,"r":1813.39,"i":22,"u":97.39},{"d":"2026-07-15","g":61,"n":7,"r":1454.46,"i":11,"u":99.35},{"d":"2026-07-16","g":112,"n":14,"r":2219.36,"i":25,"u":100},{"d":"2026-07-17","g":83,"n":8,"r":1123.52,"i":10,"u":99.35},{"d":"2026-07-18","g":113,"n":15,"r":3607.88,"i":33,"u":100},{"d":"2026-07-19","g":39,"n":2,"r":203.87,"i":3,"u":99.51},{"d":"2026-07-20","g":49,"n":6,"r":1106.55,"i":9,"u":100},{"d":"2026-07-21","g":52,"n":9,"r":1625.18,"i":15,"u":99.67},{"d":"2026-07-22","g":64,"n":8,"r":1130.73,"i":37,"u":100},{"d":"2026-07-23","g":58,"n":15,"r":4486.72,"i":35,"u":98.37},{"d":"2026-07-24","g":64,"n":8,"r":1457.28,"i":17,"u":99.67},{"d":"2026-07-25","g":120,"n":29,"r":4465.66,"i":52,"u":96.1},{"d":"2026-07-26","g":60,"n":11,"r":1492.35,"i":15,"u":100},{"d":"2026-07-27","g":54,"n":7,"r":703.59,"i":9,"u":99.67},{"d":"2026-07-28","g":48,"n":3,"r":999.65,"i":7,"u":93.81},{"d":"2026-07-29","g":54,"n":7,"r":929.45,"i":11,"u":99.67},{"d":"2026-07-30","g":49,"n":8,"r":1606.37,"i":21,"u":100},{"d":"2026-07-31","g":59,"n":8,"r":1157.35,"i":15,"u":100},{"d":"2026-08-01","g":100,"n":14,"r":1458.52,"i":18,"u":100},{"d":"2026-08-02","g":81,"n":12,"r":1682.72,"i":20,"u":100},{"d":"2026-08-03","g":38,"n":8,"r":1439.45,"i":11,"u":100},{"d":"2026-08-04","g":65,"n":8,"r":1099.55,"i":9,"u":100},{"d":"2026-08-05","g":47,"n":5,"r":399.7,"i":6,"u":84.44},{"d":"2026-08-06","g":54,"n":7,"r":1079.45,"i":11,"u":99.67},{"d":"2026-08-07","g":65,"n":6,"r":999.5,"i":10,"u":100},{"d":"2026-08-08","g":150,"n":29,"r":3522.65,"i":38,"u":100},{"d":"2026-08-09","g":59,"n":8,"r":992.49,"i":11,"u":99.02},{"d":"2026-08-10","g":39,"n":7,"r":991.95,"i":11,"u":96.74},{"d":"2026-08-11","g":48,"n":4,"r":719.67,"i":9,"u":100},{"d":"2026-08-12","g":45,"n":2,"r":527.06,"i":7,"u":100},{"d":"2026-08-13","g":44,"n":5,"r":809.65,"i":13,"u":100},{"d":"2026-08-14","g":61,"n":12,"r":2172.27,"i":27,"u":100},{"d":"2026-08-15","g":129,"n":22,"r":2518.52,"i":38,"u":100},{"d":"2026-08-16","g":59,"n":5,"r":1089.62,"i":10,"u":100},{"d":"2026-08-17","g":41,"n":4,"r":719.67,"i":9,"u":100},{"d":"2026-08-18","g":38,"n":4,"r":729.63,"i":11,"u":100},{"d":"2026-08-19","g":42,"n":4,"r":909.59,"i":13,"u":100},{"d":"2026-08-20","g":44,"n":4,"r":597.62,"i":10,"u":100},{"d":"2026-08-21","g":68,"n":13,"r":2784.97,"i":33,"u":99.35},{"d":"2026-08-22","g":117,"n":17,"r":2088.88,"i":26,"u":95.44},{"d":"2026-08-23","g":46,"n":4,"r":550.73,"i":7,"u":100},{"d":"2026-08-24","g":32,"n":5,"r":1070.52,"i":11,"u":100},{"d":"2026-08-25","g":53,"n":7,"r":929.57,"i":13,"u":100},{"d":"2026-08-26","g":62,"n":10,"r":1517.17,"i":19,"u":100},{"d":"2026-08-27","g":53,"n":7,"r":929.52,"i":12,"u":100},{"d":"2026-08-28","g":81,"n":7,"r":889.55,"i":9,"u":100},{"d":"2026-08-29","g":161,"n":28,"r":4987.67,"i":57,"u":97.39},{"d":"2026-08-30","g":59,"n":7,"r":1269.36,"i":20,"u":100},{"d":"2026-08-31","g":37,"n":7,"r":1677.6,"i":12,"u":100},{"d":"2026-09-01","g":66,"n":16,"r":3613.92,"i":34,"u":100},{"d":"2026-09-02","g":47,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-03","g":50,"n":7,"r":1299.57,"i":9,"u":100},{"d":"2026-09-04","g":76,"n":14,"r":2039.15,"i":19,"u":100},{"d":"2026-09-05","g":153,"n":24,"r":3277.86,"i":46,"u":100},{"d":"2026-09-06","g":72,"n":3,"r":1079.5,"i":10,"u":100},{"d":"2026-09-07","g":78,"n":6,"r":589.6,"i":10,"u":100},{"d":"2026-09-08","g":60,"n":9,"r":1809.05,"i":19,"u":99.67},{"d":"2026-09-09","g":46,"n":6,"r":809.6,"i":8,"u":100},{"d":"2026-09-10","g":69,"n":11,"r":1339.41,"i":13,"u":100},{"d":"2026-09-11","g":83,"n":8,"r":1839.31,"i":15,"u":100},{"d":"2026-09-12","g":152,"n":22,"r":3193.36,"i":35,"u":100},{"d":"2026-09-13","g":83,"n":2,"r":710.22,"i":6,"u":100},{"d":"2026-09-14","g":42,"n":6,"r":810.1,"i":9,"u":99.67},{"d":"2026-09-15","g":54,"n":10,"r":1882.61,"i":21,"u":100},{"d":"2026-09-16","g":38,"n":5,"r":533.19,"i":7,"u":100},{"d":"2026-09-17","g":44,"n":16,"r":2305.19,"i":31,"u":100},{"d":"2026-09-18","g":57,"n":10,"r":1446.18,"i":19,"u":100},{"d":"2026-09-19","g":123,"n":21,"r":3549.88,"i":41,"u":93.79},{"d":"2026-09-20","g":45,"n":11,"r":1443.26,"i":17,"u":100},{"d":"2026-09-21","g":29,"n":3,"r":902.82,"i":4,"u":100},{"d":"2026-09-22","g":42,"n":4,"r":769.6,"i":10,"u":100},{"d":"2026-09-23","g":27,"n":5,"r":589.65,"i":7,"u":100},{"d":"2026-09-24","g":37,"n":2,"r":299.8,"i":4,"u":100},{"d":"2026-09-25","g":45,"n":14,"r":2008.91,"i":23,"u":100},{"d":"2026-09-26","g":74,"n":15,"r":2517.25,"i":25,"u":97.39},{"d":"2026-09-27","g":44,"n":5,"r":849.65,"i":7,"u":100},{"d":"2026-09-28","g":31,"n":6,"r":809.6,"i":8,"u":98.7},{"d":"2026-09-29","g":30,"n":2,"r":449.86,"i":4,"u":97.72},{"d":"2026-09-30","g":32,"n":2,"r":214.01,"i":3,"u":100},{"d":"2026-10-01","g":47,"n":6,"r":1205.52,"i":15,"u":100},{"d":"2026-10-02","g":54,"n":10,"r":998.59,"i":15,"u":96.09},{"d":"2026-10-03","g":96,"n":18,"r":2080.82,"i":36,"u":100},{"d":"2026-10-04","g":41,"n":4,"r":389.75,"i":5,"u":100},{"d":"2026-10-05","g":36,"n":8,"r":1119.55,"i":15,"u":100},{"d":"2026-10-06","g":29,"n":3,"r":319.8,"i":7,"u":99.67},{"d":"2026-10-07","g":46,"n":5,"r":1869.05,"i":25,"u":100},{"d":"2026-10-08","g":41,"n":6,"r":1262.91,"i":15,"u":100},{"d":"2026-10-09","g":56,"n":12,"r":2688.65,"i":33,"u":17.86},{"d":"2026-10-10","g":132,"n":31,"r":4460.32,"i":59,"u":100},{"d":"2026-10-11","g":53,"n":7,"r":859.55,"i":12,"u":100},{"d":"2026-10-12","g":70,"n":9,"r":1499.25,"i":18,"u":100},{"d":"2026-10-13","g":49,"n":11,"r":2169.0,"i":24,"u":100},{"d":"2026-10-14","g":34,"n":1,"r":199.9,"i":2,"u":98.05},{"d":"2026-10-15","g":44,"n":7,"r":721.45,"i":7,"u":38.64},{"d":"2026-10-16","g":57,"n":14,"r":2632.25,"i":26,"u":0},{"d":"2026-10-17","g":86,"n":17,"r":3558.2,"i":38,"u":0},{"d":"2026-10-18","g":48,"n":5,"r":519.65,"i":8,"u":0},{"d":"2026-10-19","g":45,"n":4,"r":1724.48,"i":14,"u":0},{"d":"2026-10-20","g":31,"n":3,"r":769.75,"i":7,"u":60.91},{"d":"2026-10-21","g":33,"n":5,"r":909.6,"i":10,"u":100},{"d":"2026-10-22","g":37,"n":11,"r":1337.05,"i":19,"u":98.7},{"d":"2026-10-23","g":49,"n":10,"r":1971.17,"i":22,"u":96.41},{"d":"2026-10-24","g":75,"n":14,"r":2658.85,"i":30,"u":100},{"d":"2026-10-25","g":33,"n":3,"r":233.9,"i":4,"u":100}],"5254":[{"d":"2026-07-01","g":35,"n":7,"r":1077.3,"i":16,"u":100},{"d":"2026-07-02","g":47,"n":5,"r":1729.35,"i":13,"u":99.67},{"d":"2026-07-03","g":66,"n":12,"r":2595.71,"i":28,"u":100},{"d":"2026-07-04","g":69,"n":12,"r":2803.07,"i":24,"u":100},{"d":"2026-07-05","g":2,"n":3,"r":239.8,"i":4,"u":100},{"d":"2026-07-06","g":42,"n":4,"r":631.4,"i":14,"u":99.67},{"d":"2026-07-07","g":45,"n":6,"r":955.55,"i":11,"u":100},{"d":"2026-07-08","g":48,"n":6,"r":3098.75,"i":25,"u":97.71},{"d":"2026-07-09","g":47,"n":10,"r":1752.23,"i":17,"u":100},{"d":"2026-07-10","g":54,"n":9,"r":1178.28,"i":17,"u":99.35},{"d":"2026-07-11","g":74,"n":11,"r":1850.83,"i":25,"u":100},{"d":"2026-07-12","g":45,"n":14,"r":2923.5,"i":38,"u":100},{"d":"2026-07-13","g":37,"n":6,"r":1175.29,"i":18,"u":100},{"d":"2026-07-14","g":34,"n":4,"r":743.65,"i":8,"u":99.67},{"d":"2026-07-15","g":56,"n":7,"r":1209.67,"i":11,"u":100},{"d":"2026-07-16","g":44,"n":4,"r":391.72,"i":6,"u":100},{"d":"2026-07-17","g":47,"n":11,"r":2300.15,"i":29,"u":98.37},{"d":"2026-07-18","g":74,"n":16,"r":2633.98,"i":29,"u":100},{"d":"2026-07-19","g":16,"n":5,"r":435.81,"i":7,"u":100},{"d":"2026-07-20","g":37,"n":5,"r":716.56,"i":12,"u":100},{"d":"2026-07-21","g":42,"n":16,"r":2059.2,"i":29,"u":100},{"d":"2026-07-22","g":35,"n":8,"r":2041.16,"i":25,"u":100},{"d":"2026-07-23","g":32,"n":4,"r":839.47,"i":11,"u":97.39},{"d":"2026-07-24","g":46,"n":13,"r":3302.17,"i":40,"u":99.67},{"d":"2026-07-25","g":36,"n":9,"r":1454.09,"i":19,"u":98.37},{"d":"2026-07-26","g":30,"n":7,"r":906.45,"i":12,"u":100},{"d":"2026-07-27","g":25,"n":7,"r":1160.6,"i":11,"u":100},{"d":"2026-07-28","g":29,"n":6,"r":990.86,"i":12,"u":99.67},{"d":"2026-07-29","g":22,"n":2,"r":345.71,"i":7,"u":100},{"d":"2026-07-30","g":41,"n":10,"r":2153.12,"i":21,"u":96.41},{"d":"2026-07-31","g":41,"n":12,"r":2273.48,"i":25,"u":96.09},{"d":"2026-08-01","g":55,"n":21,"r":3927.04,"i":44,"u":96.09},{"d":"2026-08-02","g":33,"n":15,"r":1695.01,"i":21,"u":100},{"d":"2026-08-03","g":22,"n":4,"r":559.7,"i":6,"u":98.7},{"d":"2026-08-04","g":31,"n":7,"r":2239.15,"i":17,"u":100},{"d":"2026-08-05","g":32,"n":14,"r":2590.65,"i":33,"u":100},{"d":"2026-08-06","g":39,"n":11,"r":2656.3,"i":28,"u":99.02},{"d":"2026-08-07","g":42,"n":15,"r":2325.5,"i":30,"u":100},{"d":"2026-08-08","g":61,"n":29,"r":5038.5,"i":56,"u":100},{"d":"2026-08-09","g":33,"n":12,"r":2205.91,"i":25,"u":100},{"d":"2026-08-10","g":19,"n":9,"r":1709.05,"i":19,"u":98.05},{"d":"2026-08-11","g":20,"n":8,"r":2106.75,"i":21,"u":98.37},{"d":"2026-08-12","g":21,"n":6,"r":970.6,"i":10,"u":99.67},{"d":"2026-08-13","g":20,"n":6,"r":1668.5,"i":13,"u":100},{"d":"2026-08-14","g":31,"n":9,"r":2015.8,"i":22,"u":98.05},{"d":"2026-08-15","g":38,"n":6,"r":889.45,"i":13,"u":96.42},{"d":"2026-08-16","g":28,"n":9,"r":1458.1,"i":18,"u":92.21},{"d":"2026-08-17","g":27,"n":8,"r":1867.32,"i":18,"u":100},{"d":"2026-08-18","g":25,"n":7,"r":1376.52,"i":21,"u":100},{"d":"2026-08-19","g":14,"n":6,"r":722.71,"i":11,"u":100},{"d":"2026-08-20","g":33,"n":4,"r":819.49,"i":15,"u":96.42},{"d":"2026-08-21","g":30,"n":13,"r":1919.01,"i":28,"u":100},{"d":"2026-08-22","g":51,"n":23,"r":4377.11,"i":61,"u":100},{"d":"2026-08-23","g":25,"n":7,"r":799.41,"i":14,"u":100},{"d":"2026-08-24","g":23,"n":4,"r":579.7,"i":6,"u":100},{"d":"2026-08-25","g":32,"n":7,"r":1269.45,"i":15,"u":100},{"d":"2026-08-26","g":29,"n":7,"r":1261.44,"i":15,"u":98.01},{"d":"2026-08-27","g":31,"n":8,"r":1498.28,"i":23,"u":98.37},{"d":"2026-08-28","g":33,"n":8,"r":1356.43,"i":21,"u":98.37},{"d":"2026-08-29","g":69,"n":12,"r":2879.51,"i":31,"u":99.35},{"d":"2026-08-30","g":44,"n":11,"r":2938.98,"i":35,"u":96.75},{"d":"2026-08-31","g":31,"n":3,"r":399.75,"i":5,"u":96.09},{"d":"2026-09-01","g":38,"n":14,"r":2074.45,"i":30,"u":95.11},{"d":"2026-09-02","g":41,"n":12,"r":2335.8,"i":29,"u":100},{"d":"2026-09-03","g":30,"n":8,"r":1589.05,"i":22,"u":98.37},{"d":"2026-09-04","g":31,"n":10,"r":1588.91,"i":23,"u":97.07},{"d":"2026-09-05","g":66,"n":22,"r":2829.66,"i":43,"u":98.37},{"d":"2026-09-06","g":44,"n":9,"r":956.41,"i":16,"u":100},{"d":"2026-09-07","g":43,"n":13,"r":1489.1,"i":22,"u":98.37},{"d":"2026-09-08","g":22,"n":7,"r":549.5,"i":10,"u":100},{"d":"2026-09-09","g":38,"n":13,"r":1869.85,"i":27,"u":100},{"d":"2026-09-10","g":30,"n":11,"r":1771.18,"i":25,"u":100},{"d":"2026-09-11","g":38,"n":8,"r":2160.03,"i":26,"u":100},{"d":"2026-09-12","g":45,"n":17,"r":2280.75,"i":27,"u":96.09},{"d":"2026-09-13","g":28,"n":14,"r":1745.57,"i":24,"u":100},{"d":"2026-09-14","g":25,"n":6,"r":883.5,"i":12,"u":100},{"d":"2026-09-15","g":18,"n":7,"r":860.82,"i":17,"u":100},{"d":"2026-09-16","g":21,"n":4,"r":1355.39,"i":15,"u":100},{"d":"2026-09-17","g":24,"n":9,"r":2051.98,"i":25,"u":100},{"d":"2026-09-18","g":21,"n":8,"r":2106.22,"i":26,"u":100},{"d":"2026-09-19","g":30,"n":15,"r":3261.71,"i":40,"u":100},{"d":"2026-09-20","g":15,"n":1,"r":120.1,"i":5,"u":100},{"d":"2026-09-21","g":15,"n":4,"r":699.65,"i":9,"u":100},{"d":"2026-09-22","g":18,"n":9,"r":2348.93,"i":27,"u":100},{"d":"2026-09-23","g":17,"n":7,"r":1109.55,"i":9,"u":100},{"d":"2026-09-24","g":13,"n":10,"r":1456.51,"i":23,"u":98.37},{"d":"2026-09-25","g":31,"n":9,"r":1289.55,"i":13,"u":97.07},{"d":"2026-09-26","g":32,"n":11,"r":2208.96,"i":22,"u":99.67},{"d":"2026-09-27","g":11,"n":4,"r":749.6,"i":8,"u":100},{"d":"2026-09-28","g":17,"n":4,"r":714.45,"i":9,"u":100},{"d":"2026-09-29","g":22,"n":5,"r":949.45,"i":13,"u":100},{"d":"2026-09-30","g":17,"n":7,"r":768.48,"i":10,"u":99.67},{"d":"2026-10-01","g":26,"n":7,"r":876.5,"i":14,"u":98.35},{"d":"2026-10-02","g":33,"n":15,"r":2713.5,"i":37,"u":94.48},{"d":"2026-10-03","g":51,"n":31,"r":5137.05,"i":84,"u":99.35},{"d":"2026-10-04","g":21,"n":4,"r":399.75,"i":7,"u":96.75},{"d":"2026-10-05","g":21,"n":16,"r":2565.56,"i":45,"u":99.02},{"d":"2026-10-06","g":30,"n":11,"r":2655.83,"i":32,"u":100},{"d":"2026-10-07","g":35,"n":12,"r":1760.1,"i":21,"u":100},{"d":"2026-10-08","g":24,"n":8,"r":1908.55,"i":35,"u":98.37},{"d":"2026-10-09","g":37,"n":21,"r":2988.38,"i":38,"u":100},{"d":"2026-10-10","g":43,"n":21,"r":4590.56,"i":62,"u":98.37},{"d":"2026-10-11","g":37,"n":14,"r":2290.86,"i":29,"u":100},{"d":"2026-10-12","g":29,"n":6,"r":1149.35,"i":16,"u":100},{"d":"2026-10-13","g":18,"n":9,"r":2498.1,"i":24,"u":100},{"d":"2026-10-14","g":19,"n":10,"r":2134.91,"i":30,"u":97.72},{"d":"2026-10-15","g":23,"n":10,"r":1605.14,"i":26,"u":99.67},{"d":"2026-10-16","g":28,"n":9,"r":1690.94,"i":26,"u":100},{"d":"2026-10-17","g":41,"n":25,"r":4607.4,"i":59,"u":96.41},{"d":"2026-10-18","g":16,"n":7,"r":1442.14,"i":21,"u":96.75},{"d":"2026-10-19","g":17,"n":3,"r":309.8,"i":5,"u":100},{"d":"2026-10-20","g":37,"n":10,"r":1821.11,"i":25,"u":100},{"d":"2026-10-21","g":20,"n":5,"r":1157.71,"i":13,"u":100},{"d":"2026-10-22","g":25,"n":6,"r":789.55,"i":14,"u":99.02},{"d":"2026-10-23","g":33,"n":10,"r":1789.15,"i":22,"u":88.93},{"d":"2026-10-24","g":37,"n":11,"r":1858.75,"i":27,"u":100},{"d":"2026-10-25","g":9,"n":3,"r":139.88,"i":4,"u":100}],"5743":[{"d":"2026-07-01","g":0,"n":13,"r":1277.42,"i":20,"u":100},{"d":"2026-07-02","g":0,"n":15,"r":1910.2,"i":21,"u":100},{"d":"2026-07-03","g":0,"n":27,"r":5034.15,"i":43,"u":100},{"d":"2026-07-04","g":0,"n":32,"r":5627.07,"i":63,"u":100},{"d":"2026-07-05","g":0,"n":10,"r":1189.35,"i":13,"u":100},{"d":"2026-07-06","g":0,"n":10,"r":1249.36,"i":18,"u":100},{"d":"2026-07-07","g":0,"n":13,"r":1918.04,"i":22,"u":100},{"d":"2026-07-08","g":0,"n":13,"r":2111.85,"i":23,"u":100},{"d":"2026-07-09","g":0,"n":17,"r":2458.55,"i":29,"u":100},{"d":"2026-07-10","g":0,"n":27,"r":3693.35,"i":48,"u":100},{"d":"2026-07-11","g":0,"n":24,"r":3445.5,"i":41,"u":100},{"d":"2026-07-12","g":0,"n":13,"r":2406.08,"i":24,"u":100},{"d":"2026-07-13","g":0,"n":9,"r":1329.1,"i":20,"u":100},{"d":"2026-07-14","g":0,"n":7,"r":1512.22,"i":18,"u":100},{"d":"2026-07-15","g":0,"n":12,"r":4528.01,"i":40,"u":100},{"d":"2026-07-16","g":0,"n":12,"r":3147.35,"i":23,"u":100},{"d":"2026-07-17","g":0,"n":17,"r":2679.64,"i":34,"u":100},{"d":"2026-07-18","g":0,"n":20,"r":2962.06,"i":44,"u":100},{"d":"2026-07-19","g":0,"n":4,"r":223.49,"i":5,"u":100},{"d":"2026-07-20","g":0,"n":16,"r":2445.7,"i":33,"u":100},{"d":"2026-07-21","g":0,"n":14,"r":2164.28,"i":22,"u":100},{"d":"2026-07-22","g":0,"n":11,"r":1243.29,"i":15,"u":97.08},{"d":"2026-07-23","g":0,"n":6,"r":1391.4,"i":12,"u":95.13},{"d":"2026-07-24","g":0,"n":11,"r":2419.05,"i":19,"u":100},{"d":"2026-07-25","g":0,"n":18,"r":2557.75,"i":26,"u":100},{"d":"2026-07-26","g":0,"n":4,"r":509.75,"i":5,"u":93.2},{"d":"2026-07-27","g":0,"n":16,"r":2650.65,"i":36,"u":99.68},{"d":"2026-07-28","g":0,"n":11,"r":2133.01,"i":27,"u":99.03},{"d":"2026-07-29","g":31,"n":0,"r":0,"i":0,"u":93.83},{"d":"2026-07-30","g":25,"n":18,"r":3139.4,"i":32,"u":99.35},{"d":"2026-07-31","g":50,"n":16,"r":2162.67,"i":27,"u":100},{"d":"2026-08-01","g":64,"n":24,"r":3150.19,"i":37,"u":97.73},{"d":"2026-08-02","g":22,"n":10,"r":4408.41,"i":33,"u":99.03},{"d":"2026-08-03","g":17,"n":5,"r":313.77,"i":5,"u":100},{"d":"2026-08-04","g":30,"n":8,"r":1089.1,"i":18,"u":100},{"d":"2026-08-05","g":47,"n":19,"r":4096.83,"i":46,"u":100},{"d":"2026-08-06","g":31,"n":10,"r":1429,"i":20,"u":100},{"d":"2026-08-07","g":53,"n":20,"r":3057.57,"i":37,"u":97.73},{"d":"2026-08-08","g":58,"n":26,"r":3775.72,"i":42,"u":99.68},{"d":"2026-08-09","g":17,"n":9,"r":1207.5,"i":14,"u":99.03},{"d":"2026-08-10","g":31,"n":5,"r":497.8,"i":6,"u":90.58},{"d":"2026-08-11","g":27,"n":11,"r":2098.91,"i":29,"u":94.16},{"d":"2026-08-12","g":35,"n":14,"r":2108.98,"i":36,"u":97.08},{"d":"2026-08-13","g":26,"n":10,"r":1558.24,"i":21,"u":88.31},{"d":"2026-08-14","g":43,"n":15,"r":2283.42,"i":30,"u":99.68},{"d":"2026-08-15","g":62,"n":30,"r":4085.17,"i":59,"u":97.4},{"d":"2026-08-16","g":11,"n":6,"r":849.68,"i":10,"u":100},{"d":"2026-08-17","g":38,"n":6,"r":669.41,"i":13,"u":98.38},{"d":"2026-08-18","g":37,"n":11,"r":2046.17,"i":21,"u":99.68},{"d":"2026-08-19","g":40,"n":11,"r":1841.38,"i":22,"u":97.08},{"d":"2026-08-20","g":28,"n":13,"r":1523.4,"i":20,"u":38.78},{"d":"2026-08-21","g":35,"n":13,"r":2199,"i":42,"u":99.67},{"d":"2026-08-22","g":37,"n":12,"r":4267.83,"i":37,"u":97.73},{"d":"2026-08-23","g":13,"n":3,"r":929.5,"i":10,"u":100},{"d":"2026-08-24","g":35,"n":7,"r":823.47,"i":11,"u":96.1},{"d":"2026-08-25","g":25,"n":12,"r":1537.07,"i":23,"u":100},{"d":"2026-08-26","g":35,"n":7,"r":812.26,"i":9,"u":87.66},{"d":"2026-08-27","g":46,"n":13,"r":1999.52,"i":25,"u":100},{"d":"2026-08-28","g":54,"n":22,"r":5344.92,"i":46,"u":99.68},{"d":"2026-08-29","g":65,"n":27,"r":3747.82,"i":46,"u":99.68},{"d":"2026-08-30","g":24,"n":10,"r":1659.11,"i":19,"u":100},{"d":"2026-08-31","g":36,"n":6,"r":999.55,"i":9,"u":94.48},{"d":"2026-09-01","g":32,"n":8,"r":989.45,"i":11,"u":99.68},{"d":"2026-09-02","g":33,"n":0,"r":0.0,"i":0,"u":97.73},{"d":"2026-09-03","g":44,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-04","g":62,"n":47,"r":8443.07,"i":94,"u":100},{"d":"2026-09-05","g":92,"n":33,"r":7802.02,"i":74,"u":99.35},{"d":"2026-09-06","g":25,"n":7,"r":1229.45,"i":11,"u":100},{"d":"2026-09-07","g":29,"n":11,"r":1305.16,"i":18,"u":100},{"d":"2026-09-08","g":35,"n":9,"r":2028.85,"i":23,"u":100},{"d":"2026-09-09","g":34,"n":7,"r":1349.25,"i":15,"u":100},{"d":"2026-09-10","g":39,"n":13,"r":2225.77,"i":29,"u":100},{"d":"2026-09-11","g":68,"n":23,"r":3088.62,"i":36,"u":100},{"d":"2026-09-12","g":45,"n":20,"r":4242.87,"i":47,"u":100},{"d":"2026-09-13","g":21,"n":7,"r":699.41,"i":13,"u":100},{"d":"2026-09-14","g":27,"n":7,"r":830.57,"i":9,"u":100},{"d":"2026-09-15","g":36,"n":17,"r":2334.5,"i":25,"u":97.73},{"d":"2026-09-16","g":51,"n":13,"r":1979.1,"i":18,"u":100},{"d":"2026-09-17","g":34,"n":14,"r":1575.97,"i":17,"u":99.03},{"d":"2026-09-18","g":56,"n":16,"r":3349.44,"i":29,"u":100},{"d":"2026-09-19","g":75,"n":29,"r":5534.65,"i":52,"u":99.68},{"d":"2026-09-20","g":18,"n":9,"r":1111.91,"i":15,"u":100},{"d":"2026-09-21","g":39,"n":5,"r":579.56,"i":10,"u":100},{"d":"2026-09-22","g":36,"n":13,"r":2607.79,"i":24,"u":92.18},{"d":"2026-09-23","g":39,"n":11,"r":1306.11,"i":18,"u":100},{"d":"2026-09-24","g":47,"n":12,"r":2599.75,"i":25,"u":100},{"d":"2026-09-25","g":48,"n":16,"r":2868.6,"i":28,"u":93.85},{"d":"2026-09-26","g":72,"n":34,"r":6784.3,"i":74,"u":100},{"d":"2026-09-27","g":19,"n":7,"r":669.6,"i":8,"u":100},{"d":"2026-09-28","g":34,"n":7,"r":1159.3,"i":14,"u":99.03},{"d":"2026-09-29","g":40,"n":11,"r":3562.76,"i":26,"u":98.38},{"d":"2026-09-30","g":41,"n":11,"r":1681.15,"i":17,"u":98.7},{"d":"2026-10-01","g":29,"n":13,"r":2818.75,"i":34,"u":100},{"d":"2026-10-02","g":44,"n":19,"r":3498.2,"i":40,"u":96.12},{"d":"2026-10-03","g":76,"n":35,"r":5333.61,"i":74,"u":100},{"d":"2026-10-04","g":18,"n":14,"r":3038.5,"i":36,"u":100},{"d":"2026-10-05","g":27,"n":7,"r":1234.45,"i":14,"u":100},{"d":"2026-10-06","g":42,"n":16,"r":2124.05,"i":26,"u":99.35},{"d":"2026-10-07","g":43,"n":26,"r":6082.91,"i":61,"u":100},{"d":"2026-10-08","g":44,"n":23,"r":3728.1,"i":43,"u":99.68},{"d":"2026-10-09","g":51,"n":28,"r":4146.42,"i":57,"u":99.03},{"d":"2026-10-10","g":63,"n":22,"r":4704.15,"i":45,"u":100},{"d":"2026-10-11","g":33,"n":13,"r":2573.91,"i":22,"u":100},{"d":"2026-10-12","g":35,"n":13,"r":2278.7,"i":29,"u":99.68},{"d":"2026-10-13","g":35,"n":12,"r":1814.01,"i":22,"u":99.03},{"d":"2026-10-14","g":33,"n":7,"r":1159.25,"i":17,"u":98.7},{"d":"2026-10-15","g":41,"n":13,"r":2150.9,"i":28,"u":99.03},{"d":"2026-10-16","g":51,"n":12,"r":2263.69,"i":27,"u":99.02},{"d":"2026-10-17","g":65,"n":16,"r":2443.85,"i":26,"u":99.35},{"d":"2026-10-18","g":19,"n":7,"r":1209.5,"i":12,"u":100},{"d":"2026-10-19","g":19,"n":5,"r":1518.55,"i":10,"u":100},{"d":"2026-10-20","g":44,"n":15,"r":1859.0,"i":25,"u":99.68},{"d":"2026-10-21","g":39,"n":14,"r":1793.13,"i":24,"u":100},{"d":"2026-10-22","g":31,"n":12,"r":1380.2,"i":23,"u":99.03},{"d":"2026-10-23","g":54,"n":24,"r":2250.65,"i":37,"u":99.03},{"d":"2026-10-24","g":72,"n":35,"r":4341.6,"i":59,"u":100},{"d":"2026-10-25","g":19,"n":5,"r":839.6,"i":10,"u":100}],"6080":[{"d":"2026-07-01","g":0,"n":12,"r":1849,"i":20,"u":100},{"d":"2026-07-02","g":0,"n":11,"r":1229.3,"i":14,"u":100},{"d":"2026-07-03","g":0,"n":19,"r":2968.5,"i":30,"u":100},{"d":"2026-07-04","g":0,"n":25,"r":3707.85,"i":43,"u":100},{"d":"2026-07-05","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-06","g":0,"n":8,"r":1649.25,"i":15,"u":100},{"d":"2026-07-07","g":0,"n":12,"r":1769,"i":20,"u":100},{"d":"2026-07-08","g":0,"n":12,"r":2098.95,"i":21,"u":100},{"d":"2026-07-09","g":0,"n":7,"r":1349.15,"i":17,"u":100},{"d":"2026-07-10","g":0,"n":22,"r":3528.3,"i":34,"u":100},{"d":"2026-07-11","g":0,"n":13,"r":2478.75,"i":25,"u":100},{"d":"2026-07-12","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-13","g":0,"n":14,"r":2448.55,"i":29,"u":100},{"d":"2026-07-14","g":0,"n":8,"r":1279.35,"i":13,"u":100},{"d":"2026-07-15","g":0,"n":9,"r":2078.8,"i":24,"u":100},{"d":"2026-07-16","g":0,"n":13,"r":2768.61,"i":29,"u":100},{"d":"2026-07-17","g":0,"n":16,"r":3068.4,"i":32,"u":100},{"d":"2026-07-18","g":0,"n":23,"r":2628.06,"i":39,"u":100},{"d":"2026-07-19","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-20","g":0,"n":6,"r":1159.4,"i":12,"u":100},{"d":"2026-07-21","g":0,"n":17,"r":3167.85,"i":43,"u":100},{"d":"2026-07-22","g":0,"n":6,"r":1639.35,"i":13,"u":100},{"d":"2026-07-23","g":0,"n":15,"r":2228.35,"i":33,"u":100},{"d":"2026-07-24","g":0,"n":12,"r":2626.67,"i":29,"u":100},{"d":"2026-07-25","g":0,"n":18,"r":2238.55,"i":29,"u":100},{"d":"2026-07-26","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-07-27","g":0,"n":8,"r":989.25,"i":15,"u":100},{"d":"2026-07-28","g":0,"n":10,"r":1918.97,"i":23,"u":100},{"d":"2026-07-29","g":0,"n":10,"r":2658.85,"i":23,"u":100},{"d":"2026-07-30","g":0,"n":15,"r":2058.75,"i":25,"u":100},{"d":"2026-07-31","g":0,"n":26,"r":3637.75,"i":45,"u":100},{"d":"2026-08-01","g":0,"n":21,"r":3288.25,"i":35,"u":100},{"d":"2026-08-02","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-03","g":0,"n":11,"r":2828.4,"i":32,"u":100},{"d":"2026-08-04","g":0,"n":16,"r":2178.85,"i":23,"u":100},{"d":"2026-08-05","g":0,"n":17,"r":2908.45,"i":31,"u":100},{"d":"2026-08-06","g":0,"n":17,"r":2568.55,"i":29,"u":100},{"d":"2026-08-07","g":0,"n":35,"r":5586.8,"i":64,"u":100},{"d":"2026-08-08","g":0,"n":26,"r":6850.89,"i":103,"u":100},{"d":"2026-08-09","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-10","g":0,"n":11,"r":2148.75,"i":25,"u":100},{"d":"2026-08-11","g":0,"n":11,"r":2778.85,"i":23,"u":100},{"d":"2026-08-12","g":0,"n":11,"r":1428.96,"i":28,"u":100},{"d":"2026-08-13","g":0,"n":11,"r":1069.44,"i":16,"u":100},{"d":"2026-08-14","g":0,"n":20,"r":2358.65,"i":39,"u":100},{"d":"2026-08-15","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-16","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-17","g":0,"n":11,"r":1649.01,"i":27,"u":91.53},{"d":"2026-08-18","g":0,"n":11,"r":1818.81,"i":31,"u":100},{"d":"2026-08-19","g":0,"n":12,"r":2218.75,"i":31,"u":100},{"d":"2026-08-20","g":0,"n":15,"r":4277.84,"i":48,"u":100},{"d":"2026-08-21","g":0,"n":11,"r":1419.26,"i":16,"u":100},{"d":"2026-08-22","g":0,"n":18,"r":2258.54,"i":34,"u":100},{"d":"2026-08-23","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-24","g":21,"n":8,"r":1539.32,"i":16,"u":100},{"d":"2026-08-25","g":40,"n":6,"r":1139.56,"i":10,"u":100},{"d":"2026-08-26","g":33,"n":10,"r":1219.22,"i":18,"u":96.72},{"d":"2026-08-27","g":30,"n":8,"r":1279.39,"i":17,"u":100},{"d":"2026-08-28","g":46,"n":11,"r":1969.15,"i":17,"u":99.18},{"d":"2026-08-29","g":72,"n":40,"r":5915.97,"i":83,"u":100},{"d":"2026-08-30","g":0,"n":0,"r":0,"i":0,"u":100},{"d":"2026-08-31","g":31,"n":15,"r":2078.87,"i":25,"u":100},{"d":"2026-09-01","g":51,"n":12,"r":1829.05,"i":19,"u":97.95},{"d":"2026-09-02","g":39,"n":10,"r":2188.73,"i":29,"u":100},{"d":"2026-09-03","g":39,"n":16,"r":4647.57,"i":51,"u":97.54},{"d":"2026-09-04","g":59,"n":29,"r":5917.04,"i":64,"u":99.18},{"d":"2026-09-05","g":36,"n":21,"r":3587.81,"i":45,"u":99.03},{"d":"2026-09-06","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-07","g":0,"n":0,"r":0.0,"i":0,"u":86.53},{"d":"2026-09-08","g":29,"n":7,"r":1568.95,"i":21,"u":100},{"d":"2026-09-09","g":37,"n":12,"r":2208.35,"i":33,"u":100},{"d":"2026-09-10","g":41,"n":12,"r":3358.45,"i":31,"u":100},{"d":"2026-09-11","g":63,"n":16,"r":2448.45,"i":31,"u":99.18},{"d":"2026-09-12","g":37,"n":19,"r":2848.15,"i":39,"u":100},{"d":"2026-09-13","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-14","g":21,"n":4,"r":1191.39,"i":15,"u":98.36},{"d":"2026-09-15","g":27,"n":17,"r":2700.94,"i":39,"u":97.13},{"d":"2026-09-16","g":37,"n":15,"r":3568.04,"i":37,"u":38.62},{"d":"2026-09-17","g":28,"n":15,"r":3318.85,"i":25,"u":53.25},{"d":"2026-09-18","g":36,"n":16,"r":2382.75,"i":27,"u":91.8},{"d":"2026-09-19","g":48,"n":19,"r":3401.47,"i":34,"u":90.29},{"d":"2026-09-20","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-21","g":26,"n":9,"r":1349.25,"i":15,"u":88.52},{"d":"2026-09-22","g":37,"n":11,"r":2648.7,"i":26,"u":83.47},{"d":"2026-09-23","g":34,"n":17,"r":2938.4,"i":32,"u":89.34},{"d":"2026-09-24","g":38,"n":15,"r":4218.0,"i":40,"u":100},{"d":"2026-09-25","g":49,"n":20,"r":2408.35,"i":33,"u":97.95},{"d":"2026-09-26","g":58,"n":44,"r":5396.5,"i":70,"u":100},{"d":"2026-09-27","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-09-28","g":40,"n":16,"r":1718.96,"i":22,"u":100},{"d":"2026-09-29","g":37,"n":10,"r":3658.03,"i":59,"u":100},{"d":"2026-09-30","g":30,"n":7,"r":1249.25,"i":16,"u":99.59},{"d":"2026-10-01","g":27,"n":9,"r":1159.2,"i":21,"u":100},{"d":"2026-10-02","g":50,"n":17,"r":3058.4,"i":38,"u":95.1},{"d":"2026-10-03","g":29,"n":17,"r":2828.55,"i":41,"u":100},{"d":"2026-10-04","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-05","g":34,"n":8,"r":1269.25,"i":18,"u":100},{"d":"2026-10-06","g":52,"n":16,"r":2168.95,"i":28,"u":100},{"d":"2026-10-07","g":63,"n":24,"r":4150.11,"i":46,"u":100},{"d":"2026-10-08","g":58,"n":20,"r":2978.35,"i":39,"u":95.49},{"d":"2026-10-09","g":65,"n":33,"r":6296.8,"i":76,"u":100},{"d":"2026-10-10","g":55,"n":29,"r":4073.0,"i":42,"u":100},{"d":"2026-10-11","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-12","g":0,"n":0,"r":0.0,"i":0,"u":99.59},{"d":"2026-10-13","g":36,"n":13,"r":2038.9,"i":26,"u":100},{"d":"2026-10-14","g":33,"n":11,"r":1739.15,"i":22,"u":99.59},{"d":"2026-10-15","g":33,"n":11,"r":1696.3,"i":18,"u":100},{"d":"2026-10-16","g":45,"n":20,"r":2958.45,"i":37,"u":100},{"d":"2026-10-17","g":50,"n":20,"r":5087.2,"i":63,"u":100},{"d":"2026-10-18","g":0,"n":0,"r":0.0,"i":0,"u":100},{"d":"2026-10-19","g":37,"n":10,"r":1379.2,"i":19,"u":97.54},{"d":"2026-10-20","g":24,"n":3,"r":899.55,"i":10,"u":97.95},{"d":"2026-10-21","g":36,"n":9,"r":1559.15,"i":18,"u":100},{"d":"2026-10-22","g":34,"n":10,"r":1829.05,"i":19,"u":97.54},{"d":"2026-10-23","g":47,"n":19,"r":2358.6,"i":32,"u":98.77},{"d":"2026-10-24","g":42,"n":22,"r":5147.55,"i":55,"u":99.03},{"d":"2026-10-25","g":0,"n":0,"r":0.0,"i":0,"u":100}]},"market":{"bij_rua":{"jul":{"rev":{"min25":-0.150285,"median":-0.106,"top25":0.0137072},"flow":{"min25":-0.170675,"median":-0.1371,"top25":0.00211823},"conv":{"min25":0.2662774193548388,"median":0.4569032258064515,"top25":0.6005548387096774},"revYoY":{"min25":-0.156687,"median":-0.0021,"top25":0.173819},"flowYoY":{"min25":-0.373527,"median":-0.2542,"top25":-0.174075}},"ago":{"rev":{"min25":-0.126351,"median":-0.0389,"top25":0.0743078},"flow":{"min25":-0.178504,"median":-0.1447,"top25":-0.0301466},"conv":{"min25":0.2753129032258064,"median":0.4700322580645161,"top25":0.6112354838709676},"revYoY":{"min25":-0.18516,"median":-0.0135,"top25":0.064285},"flowYoY":{"min25":-0.378671,"median":-0.2209,"top25":-0.161877}},"set":{"rev":{"min25":-0.133448,"median":-0.0076,"top25":0.0920024},"flow":{"min25":-0.118263,"median":-0.0573,"top25":0.0226087},"conv":{"min25":0.29676551724137934,"median":0.5024413793103448,"top25":0.6297620689655171},"revYoY":{"min25":-0.0550495,"median":0.0137,"top25":0.142032},"flowYoY":{"min25":-0.322206,"median":-0.2258,"top25":-0.172608}}},"bij_shopping":{"jul":{"rev":{"min25":-0.00334952,"median":0.1163,"top25":0.207627},"flow":{"min25":-0.0440613,"median":0.1059,"top25":0.167621},"conv":{"min25":0.15911290322580648,"median":0.24629032258064515,"top25":0.28755483870967746},"revYoY":{"min25":null,"median":null,"top25":null},"flowYoY":{"min25":0.027451,"median":0.0458,"top25":0.0457538}},"ago":{"rev":{"min25":-0.156504,"median":-0.1014,"top25":-0.0574483},"flow":{"min25":-0.282493,"median":-0.13,"top25":-0.0842935},"conv":{"min25":0.1654709677419355,"median":0.24815483870967742,"top25":0.30094838709677424},"revYoY":{"min25":-0.231322,"median":-0.12,"top25":-0.0150224},"flowYoY":{"min25":-0.112355,"median":-0.0866,"top25":-0.0725471}},"set":{"rev":{"min25":-0.12109,"median":0.0293,"top25":0.111327},"flow":{"min25":-0.1133,"median":0.0696,"top25":0.167418},"conv":{"min25":0.18083571428571424,"median":0.255675,"top25":0.31538571428571427},"revYoY":{"min25":-0.0971523,"median":-0.0036,"top25":0.169579},"flowYoY":{"min25":0.00255102,"median":0.0304,"top25":0.0566038}}},"joi_rua":{"jul":{"rev":{"min25":-0.31004,"median":-0.2685,"top25":-0.268518},"flow":{"min25":-0.149914,"median":-0.0956,"top25":-0.0955781},"conv":{"min25":0.26435652173913043,"median":0.35051739130434784,"top25":0.36216521739130436},"revYoY":{"min25":null,"median":null,"top25":null},"flowYoY":{"min25":null,"median":null,"top25":null}},"ago":{"rev":{"min25":-0.0651045,"median":-0.0069,"top25":0.033375},"flow":{"min25":-0.120042,"median":-0.0989,"top25":-0.0978866},"conv":{"min25":0.288152380952381,"median":0.3521190476190476,"top25":0.3620714285714286},"revYoY":{"min25":null,"median":null,"top25":null},"flowYoY":{"min25":null,"median":null,"top25":null}},"set":{"rev":{"min25":-0.124774,"median":-0.0156,"top25":-0.0156151},"flow":{"min25":-0.155535,"median":-0.1183,"top25":-0.11126},"conv":{"min25":0.3227181818181818,"median":0.4124727272727273,"top25":0.41696363636363637},"revYoY":{"min25":null,"median":null,"top25":null},"flowYoY":{"min25":null,"median":null,"top25":null}}},"joi_shopping":{"jul":{"rev":{"min25":-0.300974,"median":-0.2256,"top25":-0.157759},"flow":{"min25":-0.0628643,"median":-0.0323,"top25":-0.0154211},"conv":{"min25":0.12060645161290325,"median":0.2142451612903226,"top25":0.2480483870967742},"revYoY":{"min25":null,"median":null,"top25":null},"flowYoY":{"min25":null,"median":null,"top25":null}},"ago":{"rev":{"min25":-0.0333896,"median":0.1877,"top25":0.226449},"flow":{"min25":-0.100823,"median":-0.039,"top25":0.0709949},"conv":{"min25":0.13975483870967742,"median":0.2305967741935484,"top25":0.26138709677419353},"revYoY":{"min25":null,"median":null,"top25":null},"flowYoY":{"min25":-0.177151,"median":-0.0834,"top25":-0.0834021}},"set":{"rev":{"min25":-0.227875,"median":-0.1081,"top25":-0.0201618},"flow":{"min25":-0.171943,"median":-0.0556,"top25":-0.0396571},"conv":{"min25":0.14726206896551725,"median":0.2214379310344827,"top25":0.2428655172413793},"revYoY":{"min25":null,"median":null,"top25":null},"flowYoY":{"min25":-0.0808294,"median":-0.0559,"top25":-0.0559441}}}},"sellers":[{"store":4458,"name":"Vitoria Maria Da Silva","rev":88448.96,"sales":449,"items":947,"ticket":196.99,"upt":2.109,"price":93.4},{"store":4458,"name":"Kayri Camargo","rev":14756.92,"sales":75,"items":162,"ticket":196.76,"upt":2.16,"price":91.09},{"store":4517,"name":"Vendedor Rahra","rev":9532.94,"sales":53,"items":110,"ticket":179.87,"upt":2.075,"price":86.66},{"store":4873,"name":"Vendedor Rahra","rev":1780.69,"sales":11,"items":39,"ticket":161.88,"upt":3.545,"price":45.66},{"store":4517,"name":"Isabelle Fornazari Rosa","rev":43619.68,"sales":269,"items":477,"ticket":162.15,"upt":1.773,"price":91.45},{"store":4458,"name":"COMPRAS COLABORADORAS","rev":53.96,"sales":3,"items":4,"ticket":17.99,"upt":1.333,"price":13.49},{"store":5188,"name":"COMPRAS COLABORADORAS","rev":1289.21,"sales":14,"items":25,"ticket":92.09,"upt":1.786,"price":51.57},{"store":5190,"name":"COMPRAS COLABORADORAS","rev":1355.18,"sales":14,"items":30,"ticket":96.8,"upt":2.143,"price":45.17},{"store":5743,"name":"COMPRAS COLABORADORAS","rev":756.48,"sales":16,"items":39,"ticket":47.28,"upt":2.438,"price":19.4},{"store":4458,"name":"Permutas","rev":1648.26,"sales":5,"items":15,"ticket":329.65,"upt":3.0,"price":109.88},{"store":4458,"name":"Taynara Guanabara Fernandes","rev":22320.04,"sales":109,"items":273,"ticket":204.77,"upt":2.505,"price":81.76},{"store":4517,"name":"GABRIELLE LIVIA DA SILVA","rev":3714.12,"sales":26,"items":38,"ticket":142.85,"upt":1.462,"price":97.74},{"store":4873,"name":"THAMIRIS GOMES DA PAZ","rev":75903.68,"sales":333,"items":787,"ticket":227.94,"upt":2.363,"price":96.45},{"store":4873,"name":"Ianka de Sousa Cruz","rev":78722.01,"sales":378,"items":822,"ticket":208.26,"upt":2.175,"price":95.77},{"store":4517,"name":"Vitoria HIrosse MOntanheri","rev":54885.35,"sales":285,"items":600,"ticket":192.58,"upt":2.105,"price":91.48},{"store":4507,"name":"Vendedor 1","rev":20142.8,"sales":133,"items":248,"ticket":151.45,"upt":1.865,"price":81.22},{"store":4507,"name":"SILVANA MENDES COSTA","rev":53421.92,"sales":300,"items":587,"ticket":178.07,"upt":1.957,"price":91.01},{"store":4507,"name":"NATHÁLIA COSTA RODRIGUES","rev":1839.05,"sales":10,"items":21,"ticket":183.91,"upt":2.1,"price":87.57},{"store":5190,"name":"ALINE VITORIA GOMES CORREA","rev":72095.75,"sales":353,"items":823,"ticket":204.24,"upt":2.331,"price":87.6},{"store":5190,"name":"ALANA VICTORIA MORAIS DOS SANTOS","rev":90089.84,"sales":485,"items":1051,"ticket":185.75,"upt":2.167,"price":85.72},{"store":5206,"name":"LETICIA HELENA","rev":39763.39,"sales":223,"items":493,"ticket":178.31,"upt":2.211,"price":80.66},{"store":5206,"name":"SARAH MARTINS","rev":6411.18,"sales":54,"items":88,"ticket":118.73,"upt":1.63,"price":72.85},{"store":5206,"name":"BRUNA GARCIA","rev":53261.91,"sales":322,"items":640,"ticket":165.41,"upt":1.988,"price":83.22},{"store":4873,"name":"FERNANDA DOS SANTOS PINHEIRO","rev":4840.74,"sales":26,"items":49,"ticket":186.18,"upt":1.885,"price":98.79},{"store":5206,"name":"GABRIELLE TAVARES","rev":50254.04,"sales":348,"items":645,"ticket":144.41,"upt":1.853,"price":77.91},{"store":5190,"name":"Permuta","rev":802.32,"sales":8,"items":14,"ticket":100.29,"upt":1.75,"price":57.31},{"store":4507,"name":"Victória Karoline Mendes De Almeida","rev":239.8,"sales":3,"items":4,"ticket":79.93,"upt":1.333,"price":59.95},{"store":5254,"name":"NICOLE","rev":38185.05,"sales":207,"items":487,"ticket":184.47,"upt":2.353,"price":78.41},{"store":5254,"name":"Lorrane","rev":22636.26,"sales":129,"items":266,"ticket":175.47,"upt":2.062,"price":85.1},{"store":5254,"name":"DÉBORA","rev":55476.53,"sales":287,"items":638,"ticket":193.3,"upt":2.223,"price":86.95},{"store":5254,"name":"Vendedor 1","rev":-14.03,"sales":2,"items":9,"ticket":-7.01,"upt":4.5,"price":-1.56},{"store":5254,"name":"Aline Diniz","rev":9787.93,"sales":57,"items":139,"ticket":171.72,"upt":2.439,"price":70.42},{"store":5188,"name":"Rayane da Costa Borges","rev":90682.27,"sales":378,"items":1006,"ticket":239.9,"upt":2.661,"price":90.14},{"store":5188,"name":"Lorena Batista da Fonseca Mendes","rev":62799.18,"sales":338,"items":732,"ticket":185.8,"upt":2.166,"price":85.79},{"store":5188,"name":"Permuta","rev":2711.07,"sales":10,"items":19,"ticket":271.11,"upt":1.9,"price":142.69},{"store":5245,"name":"KAILAINE TOBIAS MOTTA DA SILVA","rev":49856.21,"sales":307,"items":576,"ticket":162.4,"upt":1.876,"price":86.56},{"store":5245,"name":"LUANA GABRIELA","rev":13321.88,"sales":73,"items":143,"ticket":182.49,"upt":1.959,"price":93.16},{"store":5245,"name":"Daniele Oliveira","rev":48188.96,"sales":303,"items":535,"ticket":159.04,"upt":1.766,"price":90.07},{"store":4873,"name":"LARA EDUARDA MENDES LEMUS","rev":1037.59,"sales":5,"items":9,"ticket":207.52,"upt":1.8,"price":115.29},{"store":4517,"name":"Juliana da conceição silva","rev":945.48,"sales":6,"items":11,"ticket":157.58,"upt":1.833,"price":85.95},{"store":4507,"name":"CAROLINE SANTANA DE SOUZA FELIX","rev":37498.67,"sales":212,"items":391,"ticket":176.88,"upt":1.844,"price":95.9},{"store":5190,"name":"Maria Vitoria","rev":69397.67,"sales":390,"items":850,"ticket":177.94,"upt":2.179,"price":81.64},{"store":5188,"name":"Maria Eduarda Alves do santos","rev":10.77,"sales":0,"items":0,"ticket":0,"upt":0,"price":0},{"store":5743,"name":"Patricia Lima","rev":61388.08,"sales":328,"items":613,"ticket":187.16,"upt":1.869,"price":100.14},{"store":5743,"name":"Lohanny","rev":65869.12,"sales":377,"items":701,"ticket":174.72,"upt":1.859,"price":93.96},{"store":5743,"name":"Ana Clara","rev":69107.75,"sales":442,"items":818,"ticket":156.35,"upt":1.851,"price":84.48},{"store":5743,"name":"Ingryd Santos","rev":6691.19,"sales":34,"items":105,"ticket":196.8,"upt":3.088,"price":63.73},{"store":5743,"name":"Sabrina Cherdman","rev":8256.75,"sales":52,"items":102,"ticket":158.78,"upt":1.962,"price":80.95},{"store":5743,"name":"Isabella Carolina","rev":-199.95,"sales":-1,"items":1,"ticket":199.95,"upt":-1.0,"price":-199.95},{"store":4873,"name":"AMANDA LUCILANI TELES DA SILVA","rev":16570.06,"sales":77,"items":223,"ticket":215.2,"upt":2.896,"price":74.31},{"store":5245,"name":"Juliane Maio","rev":2175.9,"sales":12,"items":30,"ticket":181.33,"upt":2.5,"price":72.53},{"store":4517,"name":"Joanna Vitoria","rev":26716.17,"sales":160,"items":323,"ticket":166.98,"upt":2.019,"price":82.71},{"store":5254,"name":"Evellyn","rev":26193.4,"sales":156,"items":327,"ticket":167.91,"upt":2.096,"price":80.1},{"store":6080,"name":"Patricia Salles","rev":123371.83,"sales":700,"items":1489,"ticket":176.25,"upt":2.127,"price":82.86},{"store":6080,"name":"Layeska Bruna Silva","rev":71618.71,"sales":437,"items":802,"ticket":163.89,"upt":1.835,"price":89.3},{"store":6080,"name":"Atacado Malu Paes","rev":3293.23,"sales":2,"items":71,"ticket":1646.62,"upt":35.5,"price":46.38},{"store":6080,"name":"Permuta","rev":509.7,"sales":1,"items":6,"ticket":509.7,"upt":6.0,"price":84.95},{"store":6080,"name":"maria luiza capanema paes","rev":-39.95,"sales":-1,"items":1,"ticket":39.95,"upt":-1.0,"price":-39.95},{"store":4507,"name":"ISABELA PESSOA DE LIMA","rev":15557.12,"sales":92,"items":183,"ticket":169.1,"upt":1.989,"price":85.01},{"store":5245,"name":"gracieli santos de araujo","rev":19136.85,"sales":125,"items":199,"ticket":153.09,"upt":1.592,"price":96.17},{"store":4458,"name":"DANIELA BARONE","rev":10870.02,"sales":50,"items":115,"ticket":217.4,"upt":2.3,"price":94.52},{"store":5245,"name":"RAHRA","rev":44.95,"sales":1,"items":1,"ticket":44.95,"upt":1.0,"price":44.95},{"store":4458,"name":"Layla Pacheco","rev":4257.55,"sales":17,"items":51,"ticket":250.44,"upt":3.0,"price":83.48}],"partial":{"out":{"days":25,"dim":31,"asOf":"2026-10-25"}},"asOf":"2026-10-25","y0":2026,"m0":7,"weeksStart":"2026-07-06","sellersMonths":["jul","ago","set"]}/*END*/;
+const $=(s,el)=>(el||document).querySelector(s);
+const $$=(s,el)=>Array.from((el||document).querySelectorAll(s));
+const NF0=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0});
+const NF1=new Intl.NumberFormat('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const NF2=new Intl.NumberFormat('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const MINUS='−';
+const fR=v=>v==null?'—':(v<0?MINUS:'')+'R$ '+NF0.format(Math.abs(Math.round(v)));
+const fRk=v=>v==null?'—':Math.abs(v)>=1e6?'R$ '+NF2.format(v/1e6)+' mi':Math.abs(v)>=1e3?'R$ '+NF1.format(v/1e3)+' mil':fR(v);
+const fP=v=>v==null?'—':NF1.format(v)+'%';
+const fP0=v=>v==null?'—':NF0.format(Math.round(v))+'%';
+const fN=v=>v==null?'—':NF0.format(Math.round(v));
+const fS=(v,suf)=>v==null?'—':(v>=0?'+':MINUS)+NF1.format(Math.abs(v))+suf;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tc=s=>String(s).toLowerCase().replace(/(^|\s)(\S)/g,(m,a,b)=>a+b.toUpperCase()).replace(/\b(Da|De|Do|Dos|Das|E)\b/g,x=>x.toLowerCase());
+
+const ST=D.order.map(String);
+const NEW=['5743','6080'];
+const BASE9=ST.filter(s=>!NEW.includes(s));
+/* meses: chaves de 3 letras; D.y0/D.m0 = ano e mês do primeiro mês de análise (o mês anterior a ele é só base de comparação) */
+const MON=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const M0=D.m0||7,Y0=D.y0||2026;
+const MN=k=>MON.indexOf(k)+1;
+const YR=k=>MN(k)>=M0?Y0:Y0+1;
+const ordM=k=>(MN(k)-M0+12)%12;
+const BASEM=MON[(M0+10)%12];
+const MS=Object.keys(D.monthly[D.order[0]]).filter(k=>k!==BASEM).sort((p,q)=>ordM(p)-ordM(q));
+const ML={};MON.forEach(k=>{ML[k]=k[0].toUpperCase()+k.slice(1)});ML.tri='Trimestre';
+const MK={};MON.forEach((k,i)=>{MK[String(i+1).padStart(2,'0')]=k});
+const PREV={};MS.forEach((k,i)=>{PREV[k]=i?MS[i-1]:BASEM});
+/* mês parcial: D.partial = {out:{days:21,dim:31}}; ritmo = dias do mês parcial ÷ dias do mês de comparação */
+const PART=D.partial||{};
+Object.keys(PART).forEach(k=>{ML[k]+='*'});
+const MC=MS.filter(k=>!PART[k]);
+const isPart=k=>!!PART[k];
+const dimOf=k=>PART[k]?PART[k].dim:new Date(YR(k),MN(k),0).getDate();
+const MLY=k=>ML[k]+'/'+YR(k);
+const PF=(m,p)=>PART[m]?PART[m].days/dimOf(p):1;
+const ASOFL=D.asOf?D.asOf.slice(8)+'/'+D.asOf.slice(5,7):'';
+const nm=s=>D.short[s];
+const X=(s,m)=>D.monthly[s][m];
+const V=(s,m)=>!!D.inAvg[s][m];
+const LV=(s,m)=>D.levers[s]&&D.levers[s][m];
+const WD=['seg','ter','qua','qui','sex','sáb','dom'];
+const WDL=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+const FS={5743:'2026-07-30',6080:'2026-08-25'};
+const EVT={'2026-08-08':'Véspera do Dia dos Pais','2026-08-09':'Dia dos Pais','2026-09-07':'Feriado da Independência','2026-09-15':'Dia do Cliente','2026-10-12':'Dia das Crianças','2026-11-27':'Black Friday','2026-12-24':'Véspera de Natal','2026-12-25':'Natal'};
+
+const S={months:MS.slice(),store:'all',heat:'conv',cal:'rev',seg:'bij',min:50,sk:'rev',sd:-1,vk:'rev',vd:-1,fmt:Object.assign({},D.format)};
+try{const j=JSON.parse(localStorage.getItem('rahra_av_v3')||'null');if(j){['store','heat','cal','seg','min'].forEach(k=>{if(j[k]!=null)S[k]=j[k]});
+  if(Array.isArray(j.months)){const kn=Array.isArray(j.known)?j.known:[];const mm=MS.filter(k=>j.months.includes(k)||!kn.includes(k));if(mm.length)S.months=mm}
+  if(j.fmt)Object.assign(S.fmt,j.fmt)}}catch(e){}
+const save=()=>{try{localStorage.setItem('rahra_av_v3',JSON.stringify({months:S.months,known:MS,store:S.store,heat:S.heat,cal:S.cal,seg:S.seg,min:S.min,fmt:S.fmt}))}catch(e){}};
+const perMonths=()=>S.months;
+const lastM=()=>S.months[S.months.length-1];
+const firstM=()=>S.months[0];
+const perLabel=()=>{const ms=S.months;if(ms.length===1)return MLY(ms[0]);
+  const ix=ms.map(k=>MS.indexOf(k)),ct=ix.every((v,i)=>i===0||v===ix[i-1]+1);
+  return ct?ML[ms[0]]+'–'+ML[ms[ms.length-1]]:ms.map(k=>ML[k]).join(' + ')};
+const selStores=()=>S.store==='all'?ST:[S.store];
+
+/* aggregation */
+function agg(stores,months){
+  const o={rev:0,sales:0,items:0,groups:0,cs:0,cg:0,meta:0,revMeta:0,upS:0,upN:0,nValid:0};
+  for(const s of stores)for(const m of months){
+    const x=X(s,m);if(!x)continue;
+    o.rev+=x.revenue;o.sales+=x.sales;o.items+=x.items;
+    if(V(s,m)){o.groups+=x.groups;o.cs+=x.cs;o.cg+=x.cg;o.nValid++}
+    if(x.meta){o.meta+=x.meta;o.revMeta+=x.revenue}
+    o.upS+=x.uptime;o.upN++;
+  }
+  o.conv=o.cg?100*o.cs/o.cg:null;
+  o.ticket=o.sales?o.rev/o.sales:null;o.upt=o.sales?o.items/o.sales:null;o.price=o.items?o.rev/o.items:null;
+  o.att=o.meta?100*o.revMeta/o.meta:null;o.uptime=o.upN?o.upS/o.upN:null;
+  return o;
+}
+const NET={};
+MS.forEach(k=>{const a=agg(BASE9,[k]),n=agg(NEW,[k]),all=agg(ST,[k]);NET[k]={base:a,nov:n,all:all}});
+
+/* daily */
+const DAYS={};
+ST.forEach(s=>{DAYS[s]=D.daily[s].map(x=>{
+  const d=new Date(x.d+'T12:00:00');const wd=(d.getDay()+6)%7;const fv=!FS[s]||x.d>=FS[s];
+  const closed=wd===6&&D.closedSun.includes(+s);
+  const sus=(x.g>=20&&x.n<=0&&!closed)||x.n<0||(x.n>=3&&x.r/x.n<30)||(x.g>0&&x.n/x.g>1);
+  return {d:x.d,mo:x.d.slice(5,7),wd,g:x.g,n:x.n,r:x.r,i:x.i,u:x.u,fv,closed,sus,open:!(x.g===0&&x.n<=0)};
+})});
+const daysOf=(stores,months)=>{const out=[];stores.forEach(s=>DAYS[s].forEach(x=>{if(months.includes(MK[x.mo]))out.push(Object.assign({s},x))}));return out};
+
+/* tooltip */
+const tip=$('#tip');
+function tipFill(t){tip.textContent='';String(t).split('\n').forEach((l,i)=>{const d=document.createElement('div');d.textContent=l;d.className=i===0?'tl':i===1?'tv':'';tip.appendChild(d)})}
+function tipMove(x,y){const r=tip.getBoundingClientRect();let nx=x+14,ny=y+14;if(nx+r.width>innerWidth-8)nx=x-r.width-14;if(ny+r.height>innerHeight-8)ny=y-r.height-14;tip.style.left=Math.max(8,nx)+'px';tip.style.top=Math.max(8,ny)+'px'}
+function tipHandler(e){const t=e.target.closest&&e.target.closest('[data-tip]');if(!t){tip.classList.remove('on');return}
+  if(tip.dataset.src!==t.dataset.tip){tipFill(t.dataset.tip);tip.dataset.src=t.dataset.tip}
+  tip.classList.add('on');tipMove(e.clientX,e.clientY)}
+document.addEventListener('pointermove',tipHandler);
+document.addEventListener('pointerdown',tipHandler);
+document.documentElement.addEventListener('mouseleave',()=>tip.classList.remove('on'));
+document.addEventListener('focusin',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(t){tipFill(t.dataset.tip);tip.dataset.src=t.dataset.tip;const b=t.getBoundingClientRect();tip.classList.add('on');tipMove(b.left+b.width/2,b.top)}});
+document.addEventListener('focusout',()=>tip.classList.remove('on'));
+const T=(...lines)=>' data-tip="'+esc(lines.join('\n'))+'"';
+
+/* chart plumbing */
+const charts={},twins={};
+function paint(id){const el=document.getElementById(id);if(!el||!charts[id])return;const w=Math.max(260,Math.floor(el.clientWidth||el.parentElement.clientWidth||320));el.innerHTML=charts[id](w)}
+function mount(id,draw,twin){charts[id]=draw;twins[id]=twin;paint(id);const t=document.getElementById(id+'t');if(t&&twin&&!t.hidden)t.innerHTML=twin()}
+let rt;new ResizeObserver(()=>{clearTimeout(rt);rt=setTimeout(()=>Object.keys(charts).forEach(paint),140)}).observe(document.body);
+$$('[data-twin]').forEach(b=>b.addEventListener('click',()=>{
+  const id=b.dataset.twin,on=b.getAttribute('aria-pressed')!=='true';
+  b.setAttribute('aria-pressed',on);document.getElementById(id).hidden=on;const t=document.getElementById(id+'t');t.hidden=!on;
+  if(on&&twins[id])t.innerHTML=twins[id]();else paint(id);b.textContent=on?'Gráfico':'Tabela'}));
+const lin=(d0,d1,r0,r1)=>v=>r0+(v-d0)*(r1-r0)/((d1-d0)||1);
+function niceTicks(min,max,n){n=n||4;const span=(max-min)||1,s0=span/n,mag=Math.pow(10,Math.floor(Math.log10(s0))),nr=s0/mag,step=(nr<1.5?1:nr<3?2:nr<7?5:10)*mag,t=[];for(let v=Math.ceil(min/step-1e-9)*step;v<=max+step*1e-6;v+=step)t.push(+v.toFixed(10));return t}
+const svgO=(w,h,label)=>`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)}">`;
+const rtop=(x,y,w,h,r)=>{r=Math.min(r,w/2,h);return `M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`};
+const rright=(x,y,w,h,r)=>{r=Math.min(r,h/2,w);return `M${x},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h-r}Q${x+w},${y+h} ${x+w-r},${y+h}H${x}Z`};
+function spread(items,min){items.sort((a,b)=>a.y-b.y);for(let i=1;i<items.length;i++){if(items[i].y-items[i-1].y<min)items[i].y=items[i-1].y+min}return items}
+const convCls=c=>c==null?'n':c>=35?'g':c>=20?'y':'r';
+const convSym=c=>c==null?'':c>=35?'●':c>=20?'◆':'▲';
+const convCol=c=>c>=35?'var(--good)':c>=20?'var(--warn)':'var(--crit)';
+const convPill=c=>c==null?'<span class="pill n">—</span>':`<span class="pill ${convCls(c)}">${convSym(c)} ${fP(c)}</span>`;
+const dlt=(v,suf,good)=>{if(v==null||!isFinite(v))return '<span class="dl fl">sem base</span>';const up=v>0.05,dn=v<-0.05;const cls=!up&&!dn?'fl':((up===(good!==false))?'up':'dn');return `<span class="dl ${cls}">${up?'▲':dn?'▼':'■'} ${fS(v,suf)}</span>`};
+
+/* ---------- KPIs ---------- */
+function lfl(stores,m,prev,key){
+  const ss=stores.filter(s=>V(s,m)&&V(s,prev)&&X(s,prev));if(!ss.length)return null;
+  const a=agg(ss,[m]),b=agg(ss,[prev]),pf=PF(m,prev);
+  if(key==='rev')return 100*(a.rev/(b.rev*pf)-1);if(key==='groups')return 100*(a.groups/(b.groups*pf)-1);
+  if(key==='ticket')return 100*(a.ticket/b.ticket-1);if(key==='upt')return 100*(a.upt/b.upt-1);
+  if(key==='conv')return a.conv-b.conv;if(key==='uptime')return a.uptime-b.uptime;return null}
+function spark(vals,sel,w,h){w=w||120;h=h||30;const ok=vals.filter(v=>v!=null);if(ok.length<2)return '';
+  const mn=Math.min(...ok),mx=Math.max(...ok),pad=(mx-mn)*0.2||1;const x=lin(0,vals.length-1,6,w-6),y=lin(mn-pad,mx+pad,h-4,4);
+  let p='',pts=[];vals.forEach((v,i)=>{if(v==null)return;pts.push([x(i),y(v),i]);p+=(p?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)});
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${p}" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`+
+    pts.map(q=>{const on=sel.includes(MS[q[2]]);return `<circle cx="${q[0]}" cy="${q[1]}" r="${on?4:2.5}" fill="${on?'var(--brand)':'var(--surface)'}" stroke="var(--brand)" stroke-width="1.5"/>`}).join('')+'</svg>'}
+function renderKPIs(){
+  const st=selStores(),pm=perMonths(),cur=lastM();
+  const prev=pm.length>1?firstM():PREV[cur];
+  const a=agg(st,pm);
+  const dlab=(pm.length>1?ML[cur]+' vs '+ML[prev]:'vs '+ML[prev])+', mesmas lojas';
+  const per=MS.map(k=>agg(st,[k]));
+  const nValid=st.filter(s=>pm.some(k=>V(s,k))).length;
+  const tiles=[
+   {l:'Receita',v:fRk(a.rev),sub:`${perLabel()} · ${st.length>1?st.length+' lojas':nm(st[0])}`,abs:true,d:dlt(lfl(st,cur,prev,'rev'),'%'),sp:per.map((p,i)=>isPart(MS[i])?null:p.rev)},
+   {l:'Conversão',v:a.conv==null?'—':NF1.format(a.conv)+'<small>%</small>',sub:`${convSym(a.conv)} ${a.conv>=35?'acima de 35%':a.conv>=20?'entre 20% e 35%':'abaixo de 20%'} · ${nValid} lojas`,d:dlt(lfl(st,cur,prev,'conv'),' p.p.'),sp:per.map(p=>p.conv)},
+   {l:'Fluxo (grupos)',v:fN(a.groups),sub:'lojas com medição completa',abs:true,d:dlt(lfl(st,cur,prev,'groups'),'%'),sp:per.map((p,i)=>isPart(MS[i])?null:(p.groups||null))},
+   {l:'Ticket médio',v:fR(a.ticket),sub:'receita ÷ vendas',d:dlt(lfl(st,cur,prev,'ticket'),'%'),sp:per.map(p=>p.ticket)},
+   {l:'PA',v:a.upt==null?'—':NF2.format(a.upt),sub:'peças por atendimento',d:dlt(lfl(st,cur,prev,'upt'),'%'),sp:per.map(p=>p.upt)},
+   {l:'Câmeras ativas',v:a.uptime==null?'—':NF1.format(a.uptime)+'<small>%</small>',sub:a.uptime<95?'abaixo de 95%, pede ação':'disponibilidade média',d:'',sp:per.map(p=>p.uptime)}
+  ];
+  $('#kpis').innerHTML=tiles.map(t=>`<div class="tile"><span class="lab">${t.l}</span><span class="val">${t.v}</span><span class="sub">${esc(t.sub)}</span>${t.d?`<span>${t.d} <span class="sub">${esc(dlab+(t.abs&&isPart(cur)?', em ritmo':''))}</span></span>`:''}${spark(t.sp,pm)}</div>`).join('');
+}
+
+/* ---------- REDE: mês contra mês ---------- */
+function renderCmp(){
+  const pm=perMonths(),b=lastM(),a=pm.length>1?firstM():PREV[b];
+  const ss=BASE9.filter(s=>V(s,a)&&V(s,b)&&X(s,a)&&X(s,b));
+  const A=agg(ss,[a]),B=agg(ss,[b]),part=isPart(b),pf=part?PF(b,a):1;
+  $('#cmpTitle').textContent=ML[a]+' contra '+ML[b];
+  $('#cmpHint').textContent=`Mesmas ${ss.length} lojas de base, com medição completa nos dois meses · seta = variação`+(part?` · ${ML[a]} proporcional a ${PART[b].days} dias para comparar com ${ML[b]} parcial`:'');
+  const pct=(x,y)=>x?100*(y/x-1):null;
+  const mets=[
+    {l:'Fluxo',k:'groups',abs:true,f:fN,d:pct,suf:'%'},
+    {l:'Conversão',k:'conv',f:v=>NF1.format(v)+'%',d:(x,y)=>(x==null||y==null)?null:y-x,suf:' p.p.'},
+    {l:'Vendas',k:'sales',abs:true,f:fN,d:pct,suf:'%'},
+    {l:'Ticket',k:'ticket',f:fR,d:pct,suf:'%'},
+    {l:'Receita',k:'rev',abs:true,f:fRk,fl:v=>'R$ '+NF0.format(v/1000)+' mil',d:pct,suf:'%'}
+  ];
+  mets.forEach(me=>{me.a=(part&&me.abs)?A[me.k]*pf:A[me.k];me.b=B[me.k];me.dv=me.d(me.a,me.b)});
+  const light='color-mix(in oklab,var(--s1) 40%,var(--surface))';
+  mount('c2',w=>{
+    const cols=w>=760?5:w>=480?3:2,gap=12,pw=Math.floor((w-gap*(cols-1))/cols),ph=200,base=170,top=84,bw=Math.min(44,pw*.26),xa=pw*.3,xb=pw*.7;
+    let h=`<div style="display:grid;grid-template-columns:repeat(${cols},${pw}px);gap:${gap}px">`;
+    mets.forEach(me=>{
+      const mx=Math.max(me.a||0,me.b||0)||1,dv=me.dv,up=dv>0.05,dn=dv<-0.05,col=up?'var(--good-ink)':dn?'var(--crit-ink)':'var(--muted)';
+      const dtxt=dv==null?'sem base':`${up?'▲':dn?'▼':'■'} ${fS(dv,me.suf)}`;
+      let s=svgO(pw,ph,`${me.l}: ${ML[a]} ${me.f(me.a)}, ${ML[b]} ${me.f(me.b)}, variação ${dtxt}`);
+      s+=`<text x="12" y="22" class="ink2" style="font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:11px">${me.l}</text>`;
+      s+=`<text x="12" y="46" style="font-weight:700;font-size:16px;fill:${col}">${dtxt}</text>`;
+      [[a,me.a,xa,light],[b,me.b,xb,'var(--s1)']].forEach(q=>{
+        const bh=(base-top)*(q[1]||0)/mx;
+        s+=`<g class="mk" tabindex="0"${T(me.l+' · '+ML[q[0]]+(q[0]===a&&part&&me.abs?' (proporcional a '+PART[b].days+' dias)':'/'+YR(q[0])),me.f(q[1]),'Variação '+dtxt)}><path d="${rtop(q[2]-bw/2,base-bh,bw,bh,4)}" fill="${q[3]}"/><rect x="${q[2]-pw*.2}" y="${top-14}" width="${pw*.4}" height="${base-top+14}" fill="transparent"/></g>`;
+        s+=`<text x="${q[2]}" y="${base-bh-6}" text-anchor="middle" class="ink" style="font-weight:600;font-size:11px">${(me.fl||me.f)(q[1])}</text>`;
+        s+=`<text x="${q[2]}" y="${ph-10}" text-anchor="middle" class="ink2">${ML[q[0]]}${(q[0]===a&&part&&me.abs)?' prop.':''}</text>`});
+      s+=`<line class="ax" x1="10" x2="${pw-10}" y1="${base}" y2="${base}"/>`;
+      h+=`<div class="cmpp">${s}</svg></div>`});
+    return h+`</div><div class="legend"><span><i class="sq" style="background:${light}"></i>${ML[a]}</span><span><i class="sq" style="background:var(--s1)"></i>${ML[b]}</span><span>Cada indicador tem a própria escala, com base em zero</span>${part?`<span>prop. = ${ML[a]} proporcional a ${PART[b].days} dias</span>`:''}</div>`;
+  },()=>`<table><thead><tr><th>Indicador</th><th>${ML[a]}</th><th>${ML[b]}</th><th>Variação</th></tr></thead><tbody>${mets.map(me=>`<tr><td>${me.l}${(part&&me.abs)?' ('+ML[a]+' prop.)':''}</td><td>${me.f(me.a)}</td><td>${me.f(me.b)}</td><td>${me.dv==null?'—':fS(me.dv,me.suf)}</td></tr>`).join('')}</tbody></table>`);
+}
+
+/* ---------- REDE ---------- */
+function renderRede(){
+  renderCmp();
+
+  /* c3 conv */
+  const sA=MS.map(k=>NET[k].base.conv),sB=MS.map(k=>NET[k].all.conv),cats=MS.map(k=>ML[k]),nM=MS.length,nc=MS.filter(k=>!isPart(k)).length;
+  mount('c3',w=>{
+    const h=250,m={l:40,r:14,t:16,b:28},iw=w-m.l-m.r,ih=h-m.t-m.b,y=lin(0,40,m.t+ih,m.t),x=lin(0,nM-1,m.l+22,m.l+iw-22);
+    let s=svgO(w,h,'Conversão da rede por mês');
+    [0,10,20,30,40].forEach(t=>{s+=`<line class="gl" x1="${m.l}" x2="${w-m.r}" y1="${y(t)}" y2="${y(t)}"/><text x="${m.l-8}" y="${y(t)+4}" text-anchor="end">${t}%</text>`});
+    [[20,'var(--warn)','20%'],[35,'var(--good)','35%']].forEach(t=>{s+=`<line x1="${m.l}" x2="${w-m.r}" y1="${y(t[0])}" y2="${y(t[0])}" stroke="${t[1]}" stroke-width="1.5" opacity=".75"/>`});
+    const ser=[{n:'9 lojas de base',c:'var(--s1)',v:sA},{n:'Todas com medição completa',c:'var(--s2)',v:sB}];
+    ser.forEach((se,si)=>{
+      s+=`<path d="${se.v.slice(0,nc).map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)).join('')}" fill="none" stroke="${se.c}" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>`;
+      if(nc<nM&&nc>0)s+=`<path d="M${x(nc-1)},${y(se.v[nc-1])}L${x(nc)},${y(se.v[nc])}" fill="none" stroke="${se.c}" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>`;
+      se.v.forEach((v,i)=>{const part=isPart(MS[i]);s+=`<circle cx="${x(i)}" cy="${y(v)}" r="4.5" fill="${part?'var(--surface)':se.c}" stroke="${se.c}" stroke-width="2"/>`;
+        s+=`<text x="${x(i)}" y="${y(v)+(si===0?16:-9)}" text-anchor="middle" style="font-weight:600;fill:var(--ink)">${NF1.format(v)}%</text>`})});
+    cats.forEach((c,i)=>{s+=`<text x="${x(i)}" y="${h-9}" text-anchor="middle" class="ink2">${c}</text>`;
+      s+=`<rect class="mk" tabindex="0" x="${x(i)-iw/(2*nM)}" y="${m.t}" width="${iw/nM}" height="${ih}" fill="transparent"${T(isPart(MS[i])?ML[MS[i]]+' · parcial, 1 a '+ASOFL:MLY(MS[i]),...ser.map(se=>se.n+': '+NF1.format(se.v[i])+'%'))}/>`});
+    s+=`<text x="${w-m.r-2}" y="${y(35)-5}" text-anchor="end" style="fill:var(--good-ink)">meta 35%</text><text x="${w-m.r-2}" y="${y(20)-5}" text-anchor="end" style="fill:var(--warn-ink)">piso 20%</text>`;
+    return s+`</svg><div class="legend">${ser.map(se=>`<span><i style="background:${se.c}"></i>${se.n}</span>`).join('')}${nc<nM?`<span>${MS.filter(isPart).map(k=>ML[k]).join(', ')} parcial, ponto vazado</span>`:''}</div>`;
+  },()=>`<table><thead><tr><th>Mês</th><th>9 lojas</th><th>Todas com medição</th></tr></thead><tbody>${cats.map((c,i)=>`<tr><td>${c}</td><td>${fP(sA[i])}</td><td>${fP(sB[i])}</td></tr>`).join('')}</tbody></table>`);
+
+  /* c4 conv por loja */
+  const pm=perMonths();
+  const rows4=ST.map(s=>{const a=agg([s],pm);return {s,a,v:a.nValid>0,part:a.nValid>0&&a.nValid<pm.length}});
+  rows4.sort((p,q)=>(p.v===q.v)?((q.a.conv||0)-(p.a.conv||0)):(p.v?-1:1));
+  $('#c4hint').textContent=perLabel()+' · ● ≥35% · ◆ 20–35% · ▲ <20%';
+  mount('c4',w=>{
+    const rh=26,m={l:92,r:60,t:22,b:6},h=m.t+m.b+rows4.length*rh,iw=w-m.l-m.r,mx=Math.max(40,Math.ceil(Math.max(...rows4.map(r=>r.a.conv||0))/5)*5),x=lin(0,mx,m.l,m.l+iw);
+    let s=svgO(w,h,'Conversão por loja no período');
+    [20,35].forEach(t=>{if(t<=mx)s+=`<line x1="${x(t)}" x2="${x(t)}" y1="${m.t-4}" y2="${h-m.b}" stroke="${t===35?'var(--good)':'var(--warn)'}" stroke-width="1.5" opacity=".7"/><text x="${x(t)}" y="${m.t-8}" text-anchor="middle">${t}%</text>`});
+    s+=`<line class="ax" x1="${m.l}" x2="${m.l}" y1="${m.t-4}" y2="${h-m.b}"/>`;
+    rows4.forEach((r,i)=>{const yy=m.t+i*rh,sel=S.store===r.s,c=r.a.conv;
+      s+=`<text x="${m.l-8}" y="${yy+rh/2+1}" text-anchor="end" class="${sel?'ink':'ink2'}" style="${sel?'font-weight:700':''}">${esc(nm(r.s))}</text>`;
+      if(c==null){s+=`<text x="${m.l+8}" y="${yy+rh/2+1}" style="font-style:italic">em rampa, sem medição completa</text>`;return}
+      s+=`<g class="mk" tabindex="0"${T(nm(r.s)+' · '+perLabel(),fP(c)+' de conversão','Fluxo '+fN(r.a.groups)+' grupos · '+fN(r.a.cs)+' vendas'+(r.part?'\nMedição completa só em parte do período':''))}><path d="${rright(m.l,yy+4,Math.max(2,x(c)-m.l),rh-10,4)}" fill="${r.part?'var(--axis)':convCol(c)}" ${sel?'stroke="var(--ink)" stroke-width="1.5"':''}/><rect x="${m.l}" y="${yy}" width="${iw+m.r-8}" height="${rh}" fill="transparent"/></g>`;
+      s+=`<text x="${x(c)+6}" y="${yy+rh/2+1}" class="ink" style="font-weight:600">${convSym(c)} ${NF1.format(c)}%${r.part?' *':''}</text>`});
+    return s+'</svg>'+(rows4.some(r=>r.part)?'<div class="note">* só os meses com medição completa entram no cálculo.</div>':'');
+  },()=>`<table><thead><tr><th>Loja</th><th>Conversão</th><th>Fluxo</th><th>Vendas</th></tr></thead><tbody>${rows4.map(r=>`<tr><td>${esc(nm(r.s))}</td><td>${r.a.conv==null?'rampa':fP(r.a.conv)}</td><td>${fN(r.a.groups)}</td><td>${fN(r.a.cs)}</td></tr>`).join('')}</tbody></table>`);
+
+  renderStoreTable(rows4);
+}
+function renderStoreTable(rows4){
+  const pm=perMonths(),pk=pm.find(isPart),pp=pk?PREV[pk]:null;
+  $('#tbHint').textContent=perLabel()+' · '+(S.store==='all'?'todas as lojas':nm(S.store)+' em destaque');
+  const pace=s=>{if(!pk)return null;const x=X(s,pk),y=X(s,pp);return x&&y&&y.revenue?100*x.revenue/(y.revenue*PF(pk,pp)):null};
+  const pcell=v=>v==null?'—':`<span class="pill ${v>=100?'g':v>=90?'y':'r'}">${v>=100?'●':v>=90?'◆':'▲'} ${NF0.format(v)}%</span>`;
+  const rank={};let ri=0;rows4.filter(r=>r.v).forEach(r=>{if(agg([r.s],pm).nValid===pm.length)rank[r.s]=++ri});
+  const data=ST.map(s=>{const a=agg([s],pm);const nv=a.nValid;return {s,a,rank:rank[s],ramp:nv===0,part:nv>0&&nv<pm.length,pace:pace(s)}});
+  const keyf={nm:r=>nm(r.s),rev:r=>r.a.rev,pace:r=>r.pace==null?-1:r.pace,groups:r=>r.a.groups,conv:r=>r.a.conv==null?-1:r.a.conv,ticket:r=>r.a.ticket,upt:r=>r.a.upt,price:r=>r.a.price,up:r=>r.a.uptime};
+  data.sort((p,q)=>{const f=keyf[S.sk]||keyf.rev,a=f(p),b=f(q);return (typeof a==='string'?a.localeCompare(b):a-b)*S.sd});
+  const cols=[['rank','# conv.',0],['nm','Loja',1],['rev','Receita',1],['groups','Fluxo',1],['conv','Conversão',1],['ticket','Ticket',1],['upt','PA',1],['price','Preço médio',1],['up','Câmera',1]];
+  if(pk)cols.splice(3,0,['pace','Ritmo '+ML[pk],1]);
+  let h='<thead><tr>'+cols.map(c=>`<th class="${c[2]?'sortable':''}${c[0]==='nm'?' l':''}" data-k="${c[0]}"${c[0]==='pace'?` title="Receita de ${ML[pk]} ÷ receita de ${ML[pp]} proporcional aos dias"`:''}${S.sk===c[0]?` aria-sort="${S.sd<0?'descending':'ascending'}"`:''}>${c[1]}</th>`).join('')+'</tr></thead><tbody>';
+  data.forEach(r=>{const a=r.a;
+    h+=`<tr class="${r.ramp?'ramp':''} ${S.store===r.s?'sel':''}"><td>${r.rank||'—'}</td><td class="l"><b>${esc(nm(r.s))}</b> <span class="tag">${S.fmt[r.s]==='shopping'?'shopping':'rua'}</span>${r.ramp?' <span class="tag">rampa</span>':r.part?' <span class="tag">rampa em parte</span>':''}</td>`+
+    `<td>${fR(a.rev)}</td>`+
+    (pk?`<td>${pcell(r.pace)}</td>`:'')+
+    `<td>${a.groups?fN(a.groups):'—'}</td><td>${r.ramp?'<span class="pill n">rampa</span>':convPill(a.conv)}</td><td>${fR(a.ticket)}</td><td>${a.upt==null?'—':NF2.format(a.upt)}</td><td>${fR(a.price)}</td><td>${a.uptime<95?`<span class="pill r">▲ ${NF1.format(a.uptime)}%</span>`:NF1.format(a.uptime)+'%'}</td></tr>`});
+  const tot=agg(ST,pm);
+  const tpace=pk?100*agg(ST,[pk]).rev/(agg(ST,[pp]).rev*PF(pk,pp)):null;
+  h+=`<tr style="font-weight:600"><td></td><td class="l">Rede (medição completa)</td><td>${fR(tot.rev)}</td>${pk?`<td>${pcell(tpace)}</td>`:''}<td>${fN(tot.groups)}</td><td>${convPill(tot.conv)}</td><td>${fR(tot.ticket)}</td><td>${NF2.format(tot.upt)}</td><td>${fR(tot.price)}</td><td>${NF1.format(tot.uptime)}%</td></tr></tbody>`;
+  const t=$('#tbStores');t.innerHTML=h;
+  $$('th.sortable',t).forEach(th=>th.addEventListener('click',()=>{const k=th.dataset.k;if(S.sk===k)S.sd*=-1;else{S.sk=k;S.sd=k==='nm'?1:-1}renderStoreTable(rows4)}));
+}
+
+/* ---------- HEATMAP ---------- */
+const HM={
+  conv:{l:'Conversão',f:(s,m)=>X(s,m).conv,fmt:fP,status:true,ramp:true},
+  ticket:{l:'Ticket',f:(s,m)=>X(s,m).ticket,fmt:fR},
+  upt:{l:'PA',f:(s,m)=>X(s,m).upt,fmt:v=>NF2.format(v)},
+  price:{l:'Preço médio',f:(s,m)=>X(s,m).price,fmt:fR},
+  rev:{l:'Receita',f:(s,m)=>X(s,m).revenue,abs:true,fmt:fRk},
+  flow:{l:'Fluxo por dia aberto',f:(s,m)=>{const d=DAYS[s].filter(x=>MK[x.mo]===m&&x.g>0&&x.fv);return d.length?d.reduce((a,x)=>a+x.g,0)/d.length:null},fmt:v=>NF1.format(v),ramp:true},
+  up:{l:'Câmera ativa',f:(s,m)=>X(s,m).uptime,fmt:fP}
+};
+function renderHeat(){
+  if(!HM[S.heat])S.heat='conv';
+  const hm=HM[S.heat];
+  $('#heatChips').innerHTML=Object.keys(HM).map(k=>`<button class="chip" type="button" data-k="${k}" aria-pressed="${S.heat===k}">${HM[k].l}</button>`).join('');
+  $$('#heatChips .chip').forEach(b=>b.addEventListener('click',()=>{S.heat=b.dataset.k;save();renderHeat()}));
+  $('#heatHint').textContent=hm.l+(hm.status?' · ● ≥35% · ◆ 20–35% · ▲ <20%':' · quanto mais escuro, maior o valor');
+  const cols=MS.slice();const vals=[];
+  const cell=(s,m)=>{const x=X(s,m),v=x?hm.f(s,m):null,part=!!hm.abs&&isPart(m),ramp=part||(!!hm.ramp&&!V(s,m));return {v,ramp,part}};
+  ST.forEach(s=>cols.forEach(m=>{const c=cell(s,m);if(c.v!=null&&!c.ramp&&!c.part)vals.push(c.v)}));
+  const mn=Math.min(...vals),mx=Math.max(...vals);
+  let h=`<div></div>`+cols.map(m=>`<div class="hh">${ML[m]}</div>`).join('');
+  ST.forEach(s=>{h+=`<div class="hl">${esc(nm(s))}</div>`;
+    cols.forEach(m=>{const c=cell(s,m);
+      if(c.v==null||(c.ramp&&!c.v)||(c.v===0&&!hm.status)){h+=`<div class="hc na">—</div>`;return}
+      let style='',cls='hc',txt=hm.fmt(c.v);
+      if(c.ramp){cls+=' ramp'}
+      else if(hm.status){const p=c.v>=35?'var(--good)':c.v>=20?'var(--warn)':'var(--crit)';style=`background:color-mix(in oklab,${p} 24%,var(--surface));color:var(--ink)`;txt=convSym(c.v)+' '+txt}
+      else{const p=8+80*((c.v-mn)/((mx-mn)||1));style=`background:color-mix(in oklab,var(--heat) ${p.toFixed(0)}%,var(--surface));color:${p>55?'#fff':'var(--ink)'}`}
+      h+=`<div class="${cls}" style="${style}" tabindex="0"${T(nm(s)+' · '+ML[m]+(isPart(m)?' (parcial)':''),hm.l+': '+hm.fmt(c.v),c.part?'Mês parcial: valor absoluto não comparável':c.ramp?'Em rampa neste mês':'')}>${txt}</div>`})});
+  const g=$('#heat');g.style.gridTemplateColumns='minmax(68px,110px) repeat('+cols.length+',minmax(52px,1fr))';g.innerHTML=h;
+}
+
+/* ---------- DIAS ---------- */
+function wdAgg(stores,months){
+  const o=Array.from({length:7},()=>({d:0,rev:0,n:0,cg:0,cn:0,gd:0}));
+  stores.forEach(s=>DAYS[s].forEach(x=>{if(!months.includes(MK[x.mo])||!x.open||!x.fv)return;const a=o[x.wd];a.d++;a.rev+=x.r;a.n+=x.n;if(x.g>0&&!x.sus){a.cg+=x.g;a.cn+=x.n;a.gd++}}));
+  const tot=o.reduce((a,b)=>a+b.rev,0);
+  return o.map(a=>({d:a.d,rev:a.d?a.rev/a.d:null,flow:a.gd?a.cg/a.gd:null,conv:a.cg?100*a.cn/a.cg:null,share:tot?100*a.rev/tot:null}));
+}
+function renderDias(){
+  const pm=perMonths(),st=selStores();
+  const lab=(S.store==='all'?'todas as lojas':nm(S.store))+' · '+perLabel();
+  $('#wdHint').textContent=lab+' · por loja aberta no dia';
+  const wa=wdAgg(st,pm);
+  const panels=[{t:'Receita por loja aberta (R$)',k:'rev',f:v=>NF0.format(v)},{t:'Fluxo por loja aberta (grupos)',k:'flow',f:v=>NF0.format(v)},{t:'Conversão (%)',k:'conv',f:v=>NF1.format(v)}];
+  mount('c5',w=>{
+    const ph=92,gap=34,m={l:8,r:8,t:18,b:26},h=m.t+panels.length*(ph+gap)-gap+m.b,iw=w-m.l-m.r,step=iw/7,bw=Math.min(40,step*0.62);
+    let s=svgO(w,h,'Perfil por dia da semana: receita, fluxo e conversão');
+    panels.forEach((p,pi)=>{const y0=m.t+pi*(ph+gap),vals=wa.map(a=>a[p.k]),mx=Math.max(...vals.filter(v=>v!=null))||1,y=lin(0,mx*1.12,y0+ph,y0),imax=vals.indexOf(Math.max(...vals.filter(v=>v!=null)));
+      s+=`<text x="${m.l}" y="${y0-6}" class="ink2" style="font-weight:600">${p.t}</text><line class="ax" x1="${m.l}" x2="${w-m.r}" y1="${y0+ph}" y2="${y0+ph}"/>`;
+      vals.forEach((v,i)=>{if(v==null)return;const cx=m.l+step*(i+.5);
+        s+=`<g class="mk" tabindex="0"${T(WDL[i]+' · '+lab,'Receita por loja: '+fR(wa[i].rev),'Fluxo: '+NF0.format(wa[i].flow||0)+' grupos','Conversão: '+fP(wa[i].conv),'Parte da receita: '+fP(wa[i].share))}><path d="${rtop(cx-bw/2,y(v),bw,y(0)-y(v),4)}" fill="${i===imax?'var(--s1)':'color-mix(in oklab,var(--s1) 42%,var(--surface))'}"/><rect x="${cx-step/2}" y="${y0}" width="${step}" height="${ph}" fill="transparent"/></g>`;
+        s+=`<text x="${cx}" y="${y(v)-5}" text-anchor="middle" class="ink" style="font-weight:${i===imax?700:500};font-size:11px">${p.f(v)}</text>`});
+      if(pi===panels.length-1)WD.forEach((d,i)=>{s+=`<text x="${m.l+step*(i+.5)}" y="${y0+ph+16}" text-anchor="middle" class="ink2">${d}</text>`})});
+    return s+'</svg>';
+  },()=>`<table><thead><tr><th>Dia</th><th>Receita/loja</th><th>Fluxo/loja</th><th>Conversão</th><th>% da receita</th></tr></thead><tbody>${wa.map((a,i)=>`<tr><td>${WDL[i]}</td><td>${a.rev==null?'—':fR(a.rev)}</td><td>${a.flow==null?'—':NF0.format(a.flow)}</td><td>${fP(a.conv)}</td><td>${fP(a.share)}</td></tr>`).join('')}</tbody></table>`);
+
+  /* calendar scope */
+  const cs=S.store==='all'?BASE9:[S.store];
+  const dm=dayAgg(cs,pm);
+  const top=Object.values(dm).filter(o=>!o.allClosed).sort((a,b)=>b.r-a.r).slice(0,8);
+  $('#topHint').textContent=(S.store==='all'?'9 lojas de base':nm(S.store))+' · '+perLabel()+' · por receita';
+  $('#tbTop').innerHTML='<thead><tr><th>Data</th><th>Receita</th><th>Fluxo</th><th>Conversão</th><th class="l">Marco</th></tr></thead><tbody>'+top.map(o=>`<tr><td>${o.d.slice(8)}/${o.d.slice(5,7)} ${WD[o.wd]}</td><td>${fR(o.r)}</td><td>${fN(o.g)}</td><td>${o.cg>=15?fP(100*o.cn/o.cg):'—'}</td><td class="l">${EVT[o.d]?`<span class="tag">${EVT[o.d]}</span>`:''}</td></tr>`).join('')+'</tbody>';
+  renderCal(cs,pm,dm);
+}
+function dayAgg(stores,months){
+  const m={};
+  stores.forEach(s=>DAYS[s].forEach(x=>{if(!months.includes(MK[x.mo]))return;
+    const o=m[x.d]||(m[x.d]={d:x.d,wd:x.wd,r:0,g:0,n:0,cg:0,cn:0,flag:false,allClosed:true});
+    o.r+=x.r;o.n+=x.n;if(x.fv){o.g+=x.g;if(x.g>0&&!x.sus){o.cg+=x.g;o.cn+=x.n}}
+    if((x.sus&&x.fv)||x.u<90)o.flag=true;if(!x.closed)o.allClosed=false}));
+  return m}
+const CALM={rev:{l:'Receita',f:o=>o.r,fmt:fR},flow:{l:'Fluxo',f:o=>o.g,fmt:v=>NF0.format(v)+' grupos'},conv:{l:'Conversão',f:o=>o.cg>=15?100*o.cn/o.cg:null,fmt:fP}};
+function renderCal(cs,pm,dm){
+  $('#calChips').innerHTML=Object.keys(CALM).map(k=>`<button class="chip" type="button" data-k="${k}" aria-pressed="${S.cal===k}">${CALM[k].l}</button>`).join('');
+  $$('#calChips .chip').forEach(b=>b.addEventListener('click',()=>{S.cal=b.dataset.k;save();renderDias()}));
+  const cm=CALM[S.cal];$('#calHint').textContent=cm.l+' por dia · '+(S.store==='all'?'9 lojas de base (Baronesa e Itabirito fora para não criar degraus)':nm(S.store))+' · escala por percentis 5–95';
+  const vals=Object.values(dm).filter(o=>!o.allClosed).map(cm.f).filter(v=>v!=null&&v>0).sort((a,b)=>a-b);
+  const lo=vals[Math.floor(vals.length*.05)]||0,hi=vals[Math.floor(vals.length*.95)]||1;
+  const mo={};MS.forEach(k=>{mo[k]=[YR(k),MN(k)-1]});const MNF=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];let h='';
+  pm.forEach(k=>{const [yy,mm]=mo[k],first=new Date(yy,mm,1),n=new Date(yy,mm+1,0).getDate(),off=(first.getDay()+6)%7;
+    h+=`<div class="calm"><h4>${MNF[MN(k)-1]}/${YR(k)}${isPart(k)?' (parcial)':''}</h4><div class="calg">`+WD.map(d=>`<span class="dh">${d[0].toUpperCase()}</span>`).join('');
+    for(let i=0;i<off;i++)h+='<span class="dc blank"></span>';
+    for(let d=1;d<=n;d++){const iso=`${yy}-${String(mm+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,o=dm[iso];
+      if(!o)h+=`<span class="dc off">${d}</span>`;
+      else{const v=cm.f(o),offc=o.allClosed||v==null||(v===0&&S.cal!=='rev');
+        if(offc||v===0){h+=`<span class="dc off"${T(d+'/'+String(mm+1).padStart(2,'0')+' '+WD[o.wd],o.allClosed?'Loja fechada':'Sem dado válido')}>${d}</span>`}
+        else{const p=6+84*Math.max(0,Math.min(1,(v-lo)/((hi-lo)||1)));
+          h+=`<span class="dc${o.flag?' flag':''}" tabindex="0" style="background:color-mix(in oklab,var(--heat) ${p.toFixed(0)}%,var(--surface));color:${p>55?'#fff':'var(--ink)'}"${T(d+'/'+String(mm+1).padStart(2,'0')+' '+WD[o.wd]+(EVT[iso]?' · '+EVT[iso]:''),cm.l+': '+cm.fmt(v),'Receita '+fR(o.r)+' · Fluxo '+fN(o.g),'Conversão '+(o.cg>=15?fP(100*o.cn/o.cg):'—'),o.flag?'Dado suspeito ou câmera <90%':'')}>${d}</span>`}}}
+    h+='</div></div>'});
+  $('#cal').innerHTML=h;
+  $('#calLeg').innerHTML=`<span>menor</span><span style="width:140px;height:10px;border-radius:5px;display:inline-block;background:linear-gradient(to right,color-mix(in oklab,var(--heat) 6%,var(--surface)),color-mix(in oklab,var(--heat) 90%,var(--surface)));border:1px solid var(--line)"></span><span>maior (${esc(cm.fmt(lo))} a ${esc(cm.fmt(hi))})</span>`;
+}
+
+/* ---------- MERCADO ---------- */
+const MM=MS.filter(k=>D.market.bij_shopping&&D.market.bij_shopping[k]);
+function mkRahra(f,m,metric){
+  const ss=ST.filter(s=>S.fmt[s]===f);
+  if(metric==='conv'){const t=ss.filter(s=>V(s,m));return t.length?agg(t,[m]).conv:null}
+  const p=PREV[m],t=ss.filter(s=>V(s,m)&&V(s,p)&&X(s,p));if(!t.length)return null;
+  const a=agg(t,[m]),b=agg(t,[p]);return metric==='rev'?100*(a.rev/b.rev-1):100*(a.groups/b.groups-1)}
+const mkQ=(f,m,metric)=>{const o=D.market[S.seg+'_'+f][m][metric];return {lo:100*o.min25,md:100*o.median,hi:100*o.top25}};
+const mkPos=(v,q)=>v>q.hi?{c:'g',s:'●',t:'Entre os 25% melhores'}:v>=q.md?{c:'n',s:'■',t:'Acima do meio'}:v>=q.lo?{c:'y',s:'◆',t:'Abaixo do meio'}:{c:'r',s:'▲',t:'Entre os 25% piores'};
+function renderMercado(){
+  $$('#fSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.seg));
+  $('#fmtBox').innerHTML=ST.map(s=>`<label style="display:flex;justify-content:space-between;gap:8px;align-items:center">${esc(nm(s))}<select class="sel" data-s="${s}" aria-label="Formato de ${esc(nm(s))}"><option value="shopping"${S.fmt[s]==='shopping'?' selected':''}>shopping</option><option value="rua"${S.fmt[s]==='rua'?' selected':''}>rua / outro</option></select></label>`).join('');
+  $$('#fmtBox select').forEach(sel=>sel.addEventListener('change',()=>{S.fmt[sel.dataset.s]=sel.value;save();renderAll()}));
+  const mets=[{k:'rev',t:'Receita: variação sobre o mês anterior',sg:true},{k:'flow',t:'Fluxo: variação sobre o mês anterior',sg:true},{k:'conv',t:'Conversão do mês',sg:false}];
+  const fv=(me,v)=>me.sg?fS(v,'%'):NF1.format(v)+'%';
+  let h='<thead><tr><th class="l">Formato</th>'+MM.map(m=>`<th class="l">${ML[m]}</th>`).join('')+'</tr></thead><tbody>';
+  mets.forEach(me=>{
+    h+=`<tr class="grp"><td colspan="${MM.length+1}">${me.t}</td></tr>`;
+    ['shopping','rua'].forEach(f=>{
+      h+=`<tr><td class="l"><b>${f==='shopping'?'Shopping':'Rua / outro'}</b></td>`+MM.map(m=>{
+        const v=mkRahra(f,m,me.k),q=mkQ(f,m,me.k);
+        if(v==null)return `<td class="l" data-l="${ML[m]}"><span class="note">sem lojas comparáveis</span></td>`;
+        const p=mkPos(v,q);
+        return `<td class="l" data-l="${ML[m]}"><div class="mkc" tabindex="0"${T((f==='shopping'?'Shopping':'Rua / outro')+' · '+ML[m]+' · '+me.t,'Rahra: '+fv(me,v),'Loja do meio do mercado: '+fv(me,q.md),'Faixa das 50% do meio: de '+fv(me,q.lo)+' a '+fv(me,q.hi),p.t)}><span class="pill ${p.c}">${p.s} ${p.t}</span><span class="mkv">Rahra ${fv(me,v)} · mercado ${fv(me,q.md)}</span></div></td>`}).join('')+'</tr>'})});
+  $('#tbMk').innerHTML=h+'</tbody>';
+}
+
+/* ---------- VENDEDORES ---------- */
+const GEN=/permuta|compras colab|vendedor|^rahra$|atacado/i;
+const SELL=D.sellers.filter(x=>x.sales>0&&x.rev>0&&!GEN.test(x.name)).map(x=>Object.assign({},x,{store:String(x.store),nm:tc(x.name)}));
+const SM=(D.sellersMonths&&D.sellersMonths.length?D.sellersMonths:MC.slice(-3)).filter(k=>MS.includes(k));
+const rngL=ks=>ks.length===1?ML[ks[0]]:ML[ks[0]]+'–'+ML[ks[ks.length-1]];
+const q3rev=s=>SM.reduce((a,k)=>a+X(s,k).revenue,0);
+function renderVend(){
+  $$('#fMin button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===S.min));
+  const rows=SELL.filter(x=>(S.store==='all'||x.store===S.store)&&x.sales>=S.min).map(x=>Object.assign({},x,{share:100*x.rev/q3rev(x.store)}));
+  const kf={nm:r=>r.nm,store:r=>nm(r.store),rev:r=>r.rev,share:r=>r.share,sales:r=>r.sales,ticket:r=>r.ticket,upt:r=>r.upt,price:r=>r.price};
+  rows.sort((a,b)=>{const f=kf[S.vk]||kf.rev,p=f(a),q=f(b);return (typeof p==='string'?p.localeCompare(q):p-q)*S.vd});
+  $('#vHint').textContent=(S.store==='all'?'Todas as lojas':nm(S.store))+' · '+rows.length+' vendedoras(es) · '+rngL(SM);
+  const cols=[['nm','Vendedor(a)',1],['store','Loja',1],['rev','Receita',1],['share','% da loja',1],['sales','Vendas',1],['ticket','Ticket',1],['upt','PA',1]];
+  let h='<thead><tr>'+cols.map(c=>`<th class="sortable${c[0]==='nm'||c[0]==='store'?' l':''}" data-k="${c[0]}"${S.vk===c[0]?` aria-sort="${S.vd<0?'descending':'ascending'}"`:''}>${c[1]}</th>`).join('')+'</tr></thead><tbody>';
+  const best={ticket:Math.max(...rows.map(r=>r.ticket),0),upt:Math.max(...rows.map(r=>r.upt),0)};
+  rows.forEach(r=>{h+=`<tr><td class="l wrap">${esc(r.nm)}</td><td class="l">${esc(nm(r.store))}</td><td>${fR(r.rev)}</td><td>${fP0(r.share)}</td><td>${fN(r.sales)}</td><td>${r.ticket===best.ticket&&rows.length>3?'<b>'+fR(r.ticket)+'</b>':fR(r.ticket)}</td><td>${r.upt===best.upt&&rows.length>3?'<b>'+NF2.format(r.upt)+'</b>':NF2.format(r.upt)}</td></tr>`});
+  const t=$('#tbSel');t.innerHTML=h+'</tbody>';
+  $$('th.sortable',t).forEach(th=>th.addEventListener('click',()=>{const k=th.dataset.k;if(S.vk===k)S.vd*=-1;else{S.vk=k;S.vd=(k==='nm'||k==='store')?1:-1}renderVend()}));
+  /* concentration */
+  const conc=ST.map(s=>{const l=SELL.filter(x=>x.store===s).sort((a,b)=>b.rev-a.rev);return l.length?{s,top:l[0],n:l.filter(x=>x.sales>=50).length,share:100*l[0].rev/q3rev(s)}:null}).filter(Boolean).sort((a,b)=>b.share-a.share);
+  mount('c7',w=>{
+    const rh=26,m={l:92,r:40,t:20,b:4},h=m.t+m.b+conc.length*rh,iw=w-m.l-m.r,x=lin(0,80,m.l,m.l+iw);
+    let s=svgO(w,h,'Participação da vendedora número 1 na receita de cada loja');
+    s+=`<line x1="${x(50)}" x2="${x(50)}" y1="${m.t-4}" y2="${h-m.b}" stroke="var(--warn)" stroke-width="1.5" opacity=".8"/><text x="${x(50)}" y="${m.t-8}" text-anchor="middle">50%</text><line class="ax" x1="${m.l}" x2="${m.l}" y1="${m.t-4}" y2="${h-m.b}"/>`;
+    conc.forEach((c,i)=>{const yy=m.t+i*rh,sel=S.store===c.s;
+      s+=`<text x="${m.l-8}" y="${yy+rh/2+1}" text-anchor="end" class="${sel?'ink':'ink2'}" style="${sel?'font-weight:700':''}">${esc(nm(c.s))}</text>`+
+      `<g class="mk" tabindex="0"${T(nm(c.s),NF0.format(c.share)+'% da receita do trimestre',c.top.nm+' · '+fR(c.top.rev),c.n+' vendedoras(es) com 50+ vendas')}><path d="${rright(m.l,yy+4,Math.max(2,x(c.share)-m.l),rh-10,4)}" fill="${c.share>=50?'var(--warn)':'var(--s1)'}"/><rect x="${m.l}" y="${yy}" width="${iw+m.r-6}" height="${rh}" fill="transparent"/></g>`+
+      `<text x="${x(c.share)+6}" y="${yy+rh/2+1}" class="ink" style="font-weight:600">${c.share>=50?'▲ ':''}${NF0.format(c.share)}%</text>`});
+    return s+'</svg>';
+  },()=>`<table><thead><tr><th>Loja</th><th>Vendedora nº 1</th><th>Participação</th><th>Vendedoras ativas</th></tr></thead><tbody>${conc.map(c=>`<tr><td>${esc(nm(c.s))}</td><td class="l">${esc(c.top.nm)}</td><td>${fP0(c.share)}</td><td>${c.n}</td></tr>`).join('')}</tbody></table>`);
+}
+
+/* ---------- LOJAS NOVAS ---------- */
+const addD=(iso,n)=>{const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
+const DBD={};ST.forEach(s=>{DBD[s]={};DAYS[s].forEach(x=>DBD[s][x.d]=x)});
+const WEEKS=[];let wEnd=addD(D.asOf,-6);wEnd=addD(wEnd,-((new Date(wEnd+'T12:00:00').getDay()+6)%7));
+for(let d=D.weeksStart||'2026-07-06';d<=wEnd;d=addD(d,7))WEEKS.push(d);
+function wk(stores,w,needFlow){let r=0,cg=0,cn=0,full=true;stores.forEach(s=>{for(let i=0;i<7;i++){const x=DBD[s][addD(w,i)];if(!x)continue;r+=x.r;if(!x.fv)full=false;if(x.fv&&x.g>0&&!x.sus){cg+=x.g;cn+=x.n}}});return {r,conv:(cg&&(!needFlow||full))?100*cn/cg:null}}
+function renderNovas(){
+  const ser=[{n:'Baronesa',s:['5743'],c:'var(--s1)',fs:'2026-07-30'},{n:'Itabirito',s:['6080'],c:'var(--s2)',fs:'2026-08-25'}];
+  const ref=WEEKS.map(w=>wk(BASE9,w,false));
+  const lines=ser.map(se=>({n:se.n,c:se.c,v:WEEKS.map(w=>wk(se.s,w,false).r),cv:WEEKS.map(w=>wk(se.s,w,true).conv),fs:se.fs}));
+  const refR=ref.map(x=>x.r/BASE9.length),refC=ref.map(x=>x.conv);
+  const wl=w=>w.slice(8)+'/'+w.slice(5,7);
+  function lineChart(w,h,sets,yfmt,ymin,ymax,markers,aria){
+    const m={l:52,r:80,t:14,b:28},iw=w-m.l-m.r,ih=h-m.t-m.b,tk=niceTicks(ymin,ymax,4),y=lin(tk[0],tk[tk.length-1],m.t+ih,m.t),x=lin(0,WEEKS.length-1,m.l+6,m.l+iw);
+    let s=svgO(w,h,aria);tk.forEach(t=>{s+=`<line class="gl" x1="${m.l}" x2="${w-m.r}" y1="${y(t)}" y2="${y(t)}"/><text x="${m.l-8}" y="${y(t)+4}" text-anchor="end">${yfmt(t)}</text>`});
+    markers.forEach((mk,mi)=>{const i=WEEKS.findIndex((wv,k)=>mk.d>=wv&&mk.d<addD(wv,7));if(i<0)return;const left=x(i)>m.l+iw*0.55;s+=`<line x1="${x(i)}" x2="${x(i)}" y1="${m.t}" y2="${m.t+ih}" stroke="${mk.c}" stroke-width="1.5" opacity=".6"/><text x="${x(i)+(left?-4:4)}" y="${m.t+10+mi*12}" text-anchor="${left?'end':'start'}" style="fill:${mk.c};font-size:10px">${mk.t}</text>`});
+    sets.forEach(se=>{let p='',started=false;se.v.forEach((v,i)=>{if(v==null){started=false;return}p+=(started?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1);started=true});
+      s+=`<path d="${p}" fill="none" stroke="${se.c}" stroke-width="${se.thick?3:2.25}" ${se.dim?'opacity=".75"':''} stroke-linecap="round" stroke-linejoin="round"/>`;
+      se.v.forEach((v,i)=>{if(v!=null&&(!se.dim))s+=`<circle cx="${x(i)}" cy="${y(v)}" r="3.5" fill="${se.c}" stroke="var(--surface)" stroke-width="1.5"/>`})});
+    const ends=sets.map(se=>{let li=se.v.length-1;while(li>0&&se.v[li]==null)li--;return {y:y(se.v[li]),n:se.lab||se.n,c:se.c}});
+    spread(ends,13).forEach(l=>{s+=`<text x="${w-m.r+8}" y="${l.y+4}" style="fill:var(--ink);font-weight:600">${l.n}</text>`});
+    WEEKS.forEach((wv,i)=>{if(i%2===0||w>560)s+=`<text x="${x(i)}" y="${h-9}" text-anchor="middle" class="ink2" style="font-size:10px">${wl(wv)}</text>`;
+      s+=`<rect class="mk" tabindex="0" x="${x(i)-iw/(WEEKS.length*2)}" y="${m.t}" width="${iw/WEEKS.length}" height="${ih}" fill="transparent"${T('Semana de '+wl(wv),...sets.map(se=>se.n+': '+(se.v[i]==null?'sem medição completa':yfmt(se.v[i],1))))}/>`});
+    return s+`</svg><div class="legend">${sets.map(se=>`<span><i style="background:${se.c}"></i>${se.n}</span>`).join('')}</div>`}
+  const sets8=[...lines.map(l=>({n:l.n,c:l.c,v:l.v})),{n:'Média por loja (9 de base)',lab:'Média base',c:'var(--muted)',v:refR,thick:false,dim:true}];
+  mount('c8',w=>lineChart(w,260,sets8,(v,f)=>f?fR(v):NF0.format(v/1000)+' mil',0,Math.max(...sets8.flatMap(s=>s.v))*1.1,[{d:'2026-07-30',t:'Baronesa: fluxo',c:'var(--s1)'},{d:'2026-08-25',t:'Itabirito: fluxo',c:'var(--s2)'}],'Receita semanal das lojas novas contra a média das lojas de base'),
+    ()=>`<table><thead><tr><th>Semana</th><th>Baronesa</th><th>Itabirito</th><th>Média/loja (9)</th></tr></thead><tbody>${WEEKS.map((wv,i)=>`<tr><td>${wl(wv)}</td><td>${fR(lines[0].v[i])}</td><td>${fR(lines[1].v[i])}</td><td>${fR(refR[i])}</td></tr>`).join('')}</tbody></table>`);
+  const sets9=[...lines.map(l=>({n:l.n,c:l.c,v:l.cv})),{n:'Rede (9 lojas de base)',lab:'Rede base',c:'var(--muted)',v:refC,dim:true}];
+  mount('c9',w=>lineChart(w,260,sets9,(v,f)=>NF1.format(v)+'%',0,50,[{d:'2026-08-31',t:'Itabirito completa',c:'var(--s2)'}],'Conversão semanal das lojas novas contra a rede'),
+    ()=>`<table><thead><tr><th>Semana</th><th>Baronesa</th><th>Itabirito</th><th>Rede (9)</th></tr></thead><tbody>${WEEKS.map((wv,i)=>`<tr><td>${wl(wv)}</td><td>${fP(lines[0].cv[i])}</td><td>${fP(lines[1].cv[i])}</td><td>${fP(refC[i])}</td></tr>`).join('')}</tbody></table>`);
+}
+
+/* ---------- textos que dependem dos dados ---------- */
+(function(){
+  const pk=Object.keys(PART).filter(k=>MS.includes(k)),lastY=YR(MS[MS.length-1]),clean=k=>ML[k].replace('*','');
+  $('#brandSub').textContent=clean(MS[0])+'–'+clean(MS[MS.length-1])+'/'+lastY+' · '+ST.length+' lojas'+(pk.length?' · '+pk.map(k=>ML[k]).join(', ')+' parcial, 1 a '+ASOFL:'');
+  const pn=$('#partNote');if(pk.length){pn.hidden=false;pn.innerHTML='<b>'+pk.map(k=>ML[k]).join(', ')+':</b> mês parcial (1 a '+ASOFL+'). Receita e fluxo variam contra o mês anterior proporcional aos dias.'}
+  $('#heatNote').textContent='Contorno tracejado: loja em rampa naquele mês.'+(pk.length?' '+pk.map(k=>ML[k]).join(', ')+' = 1 a '+ASOFL+' (parcial): a receita absoluta não é comparável com meses fechados.':'');
+  $$('.vper').forEach(e=>{e.textContent=(SM.length>1?'Meses fechados ':'Mês fechado ')+rngL(SM)});
+})();
+
+/* ---------- wiring ---------- */
+function renderAll(){
+  $$('#fMon button').forEach(b=>b.setAttribute('aria-pressed',S.months.includes(b.dataset.v)));
+  renderKPIs();renderRede();renderHeat();renderDias();renderMercado();renderVend();renderNovas();
+}
+$('#fMon').innerHTML=MS.map(k=>`<button type="button" data-v="${k}"${isPart(k)?` title="Parcial: 1 a ${ASOFL}"`:' title="Clique para somar ou tirar este mês"'}>${ML[k]}</button>`).join('');
+$('#fMon').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const v=b.dataset.v;
+  const has=S.months.includes(v);if(has&&S.months.length===1)return;S.months=MS.filter(k=>k===v?!has:S.months.includes(k));
+  save();renderAll()});
+$('#fStore').innerHTML='<option value="all">Rede toda</option>'+ST.map(s=>`<option value="${s}">${esc(nm(s))}</option>`).join('');
+if(S.store!=='all'&&!ST.includes(S.store))S.store='all';
+$('#fStore').value=S.store;
+$('#fStore').addEventListener('change',e=>{S.store=e.target.value;save();renderAll()});
+$$('#fSeg button').forEach(b=>b.addEventListener('click',()=>{S.seg=b.dataset.v;save();renderMercado()}));
+$$('#fMin button').forEach(b=>b.addEventListener('click',()=>{S.min=+b.dataset.v;save();renderVend()}));
+renderAll();
+/* nav scrollspy */
+try{const links=$$('#nav a'),secs=links.map(a=>document.getElementById(a.getAttribute('href').slice(1)));
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#'+e.target.id))}})},{rootMargin:'-30% 0px -60% 0px'});
+  secs.forEach(s=>s&&io.observe(s))}catch(e){}
+})();
+</script>
+
+<script type="text/plain" id="motor-py">
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Motor de atualização semanal do Painel AlterVision Rahra.
+
+Fica guardado dentro do próprio painel (script inerte id="motor-py"). A rotina agendada lê o painel, extrai este
+arquivo e roda:
+
+  python3 motor.py plan  --html LIDO.html [--today AAAA-MM-DD]
+  python3 motor.py apply --html LIDO.html --out NOVO.html --daily ARQ [--daily ARQ ...]
+                         [--market AAAA-MM=ARQ ...] [--sellers ARQ] [--today AAAA-MM-DD]
+  python3 motor.py info  --html LIDO.html
+  python3 motor.py smoke --html NOVO.html
+
+Princípio: tudo vem do conversion_rate_per_date com includeDetails (um registro por loja e por dia).
+O mês inteiro é refeito a cada rodada, então o painel se corrige sozinho se a AlterVision revisar algum dia.
+Qualquer inconsistência interrompe a rodada (exit 2) e o painel publicado fica como estava.
+"""
+import argparse, calendar, datetime as dt, json, math, os, re, sys, tempfile
+
+MON = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+START, END = '/*' + 'DATA' + '*/', '/*' + 'END' + '*/'      # montados assim para não aparecerem literais dentro da própria página
+MIN_RANGE = 50          # dias mínimos da consulta diária (respostas grandes são salvas em arquivo pela ferramenta)
+MIN_DAYS = 1            # mês novo entra no painel quando já tem pelo menos N dias de dados
+MARKET_SEGS = {'bijuteria': 'bij', 'artigos de luxo e joias': 'joi'}
+TOL_REV = 0.06          # tolerância (R$) entre soma dos dias e resumo da AlterVision
+TOL_CONV_WARN, TOL_CONV_ERR = 0.06, 0.5
+
+
+class Fail(Exception):
+    pass
+
+
+# ------------------------------------------------------------------ datas
+def d2(s):
+    return dt.date.fromisoformat(s)
+
+
+def today_sp():
+    try:
+        from zoneinfo import ZoneInfo
+        return dt.datetime.now(ZoneInfo('America/Sao_Paulo')).date()
+    except Exception:
+        return (dt.datetime.utcnow() - dt.timedelta(hours=3)).date()
+
+
+def dim(y, m):
+    return calendar.monthrange(y, m)[1]
+
+
+def ym_idx(D, y, m):
+    return (y - D['y0']) * 12 + (m - D['m0'])
+
+
+def idx_ym(D, i):
+    t = D['m0'] - 1 + i
+    return D['y0'] + t // 12, t % 12 + 1
+
+
+# ------------------------------------------------------------------ página <-> dados
+def unwrap(html):
+    """A leitura do Artifact devolve a página dentro do esqueleto (doctype, head, body). Tira o esqueleto."""
+    tb, te = '<bo' + 'dy>', '</bo' + 'dy>'
+    i = html.find(tb)
+    j = html.rfind(te)
+    if html.lstrip()[:9].lower() == '<!doc' + 'type' and i != -1 and j > i:
+        html = html[i + len(tb):j]
+    return html.strip() + '\n'
+
+
+def split_data(core):
+    if core.count(START) != 1 or core.count(END) != 1:
+        raise Fail('marcadores de dados não encontrados na página')
+    i = core.index(START) + len(START)
+    j = core.index(END, i)
+    return core[:i], json.loads(core[i:j]), core[j:]
+
+
+def load_page(path):
+    core = unwrap(open(path, encoding='utf-8').read())
+    a, D, b = split_data(core)
+    return core, a, D, b
+
+
+def dump_page(a, D, b):
+    s = json.dumps(D, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
+    return a + s + b
+
+
+def load_any(path):
+    t = open(path, encoding='utf-8').read()
+    try:
+        v = json.loads(t)
+    except Exception:
+        v = json.loads(t.split('\n', 1)[1])      # 1ª linha = argumentos da chamada
+    if isinstance(v, list) and v and isinstance(v[0], dict) and v[0].get('type') == 'text' and 'text' in v[0]:
+        v = json.loads(''.join(x.get('text', '') for x in v if x.get('type') == 'text'))
+    if isinstance(v, dict) and set(v) == {'result'}:
+        v = v['result']
+        if isinstance(v, str):
+            v = json.loads(v)
+    return v
+
+
+# ------------------------------------------------------------------ cálculo mensal a partir dos dias
+def derive(days):
+    """Reproduz os números mensais da AlterVision a partir das linhas diárias.
+    Conversão ajustada = só entram os dias com fluxo (>0) e com venda diferente de zero (verificado em 44 lojas-mês)."""
+    g = sum(x['g'] for x in days)
+    n = sum(x['n'] for x in days)
+    r = sum(x['r'] for x in days)
+    it = sum(x['i'] for x in days)
+    inc = [x for x in days if x['g'] > 0 and x['n'] != 0]
+    cs = sum(x['n'] for x in inc)
+    cg = sum(x['g'] for x in inc)
+    up = sum(x['u'] for x in days) / len(days) if days else 100
+    return dict(revenue=round(r, 2), sales=n, items=it, groups=g, visitors=None, cs=cs, cg=cg,
+                conv=round(100 * cs / cg, 1) if cg else 0,
+                ticket=round(r / n, 2) if n else 0, upt=round(it / n, 3) if n else 0,
+                price=round(r / it, 2) if it else 0, uptime=round(up, 2))
+
+
+# ------------------------------------------------------------------ plano
+def sellers_target(D):
+    """Último bloco de 3 meses (a partir do mês inicial) totalmente fechado."""
+    part = D.get('partial', {})
+    have = set(D['monthly'][str(D['order'][0])])
+    best = None
+    for b in range(4):
+        keys, ok = [], True
+        for i in range(3 * b, 3 * b + 3):
+            y, m = idx_ym(D, i)
+            k = MON[m - 1]
+            if k not in have or k in part:
+                ok = False
+            keys.append(k)
+        if ok:
+            y0, m0 = idx_ym(D, 3 * b)
+            y1, m1 = idx_ym(D, 3 * b + 2)
+            best = dict(months=keys, dateBegin=dt.date(y0, m0, 1).isoformat(), dateEnd=dt.date(y1, m1, dim(y1, m1)).isoformat())
+    return best
+
+
+def month_end(y, m):
+    return dt.date(y, m, dim(y, m))
+
+
+def prev_month(y, m):
+    return (y - 1, 12) if m == 1 else (y, m - 1)
+
+
+def next_month(y, m):
+    return (y + 1, 1) if m == 12 else (y, m + 1)
+
+
+def month_ym(D, k):
+    return idx_ym(D, (MON.index(k) + 1 - D['m0']) % 12)
+
+
+def make_plan(D, today, min_days=MIN_DAYS):
+    """Uma única consulta diária cobrindo do dia 1 do mês anterior até ontem (sempre >= 1 mês inteiro:
+    o resultado é grande e a ferramenta o devolve como arquivo; o motor refaz todos os meses tocados)."""
+    yest = today - dt.timedelta(days=1)
+    s0 = str(D['order'][0])
+    stored = set(D['monthly'][s0])
+    part = D.get('partial', {})
+    cur = (yest.year, yest.month)
+    if not 0 <= ym_idx(D, *cur) <= 11:
+        raise Fail('janela de 12 meses do painel esgotada (%s); é preciso reconfigurar o mês inicial' % yest.isoformat()[:7])
+    last = d2(D['asOf'])
+    lm = (last.year, last.month)
+    first_open = lm if MON[lm[1] - 1] in part else next_month(*lm)          # 1º mês que ainda precisa ser (re)feito
+    start_m = min(first_open, prev_month(*cur))
+    start = max(dt.date(start_m[0], start_m[1], 1), dt.date(D['y0'], D['m0'], 1))
+    end = yest
+    skipped = []
+    if yest.day < min_days and MON[cur[1] - 1] not in stored:             # mês novo ainda curto demais: fica de fora
+        skipped.append(dict(month=MON[cur[1] - 1], days=yest.day))
+        pm = prev_month(*cur)
+        end = month_end(*pm)
+    if end < start:
+        end = start
+    start = max(min(start, end - dt.timedelta(days=MIN_RANGE - 1)), dt.date(D['y0'], D['m0'], 1))   # >= 50 dias: resposta grande vira arquivo
+    months = []
+    y, m = start.year, start.month
+    while (y, m) <= (end.year, end.month):
+        months.append(MON[m - 1])
+        y, m = next_month(y, m)
+    # mercado: meses que fecham (ou já fechados) e ainda sem base
+    closing = set(k for k in months if end >= month_end(*month_ym(D, k)))
+    mk_need = []
+    base = MON[(D['m0'] + 10) % 12]
+    for k in sorted(stored | set(months), key=lambda k: (MON.index(k) + 1 - D['m0']) % 12):
+        if k == base:
+            continue
+        yy, mm = month_ym(D, k)
+        closed_now = (k in stored and k not in part) or k in closing
+        have = all(k in D['market'].get(c, {}) for c in ('bij_rua', 'bij_shopping', 'joi_rua', 'joi_shopping'))
+        if closed_now and not have:
+            mk_need.append(dict(month='%d-%02d' % (yy, mm), key=k))
+    # vendedoras: último bloco de 3 meses totalmente fechado, se mudou
+    D2 = json.loads(json.dumps(D))
+    for k in closing:
+        for s in D2['monthly']:
+            D2['monthly'][s].setdefault(k, {})
+        D2.get('partial', {}).pop(k, None)
+    tgt = sellers_target(D2)
+    sel_need = tgt if (tgt and tgt['months'] != D.get('sellersMonths')) else None
+    return dict(today=today.isoformat(), yesterday=yest.isoformat(), storedAsOf=D['asOf'], newAsOf=end.isoformat(),
+                daily=[dict(dateBegin=start.isoformat(), dateEnd=end.isoformat(), includeDetails=True)],
+                months=months, skippedShortMonth=skipped, market=mk_need, sellers=sel_need)
+
+
+# ------------------------------------------------------------------ leitura das respostas da AlterVision
+def read_daily(path, D, label, warns):
+    v = load_any(path)
+    if not isinstance(v, list):
+        raise Fail('%s: resposta inesperada (não é uma lista de lojas)' % label)
+    out = {}
+    errs = []
+    for st in v:
+        sid = st.get('store_id')
+        if sid not in D['order']:
+            warns.append('loja nova fora do painel, ignorada: %s %s (precisa ser cadastrada)' % (sid, st.get('store_name')))
+            continue
+        rows, seen = [], set()
+        for x in st.get('daily_data') or []:
+            d = x['date']
+            if d in seen:
+                errs.append('%s: dia repetido %s' % (sid, d))
+            seen.add(d)
+            rows.append(dict(d=d, g=int(x['visitor_groups']), n=int(x['sales']['count']), r=round(float(x['sales']['revenue']), 2),
+                             i=int(x['sales']['items']), u=x['camera_uptime_percent']))
+        rows.sort(key=lambda z: z['d'])
+        out[sid] = dict(rows=rows, summary=st.get('summary') or {})
+    miss = [s for s in D['order'] if s not in out]
+    if miss:
+        errs.append('lojas sem resposta: %s' % miss)
+    if errs:
+        raise Fail('%s: ' % label + '; '.join(errs))
+    return out
+
+
+def check_daily(data, rng, D, label, warns):
+    b, e = d2(rng['dateBegin']), d2(rng['dateEnd'])
+    want = [(b + dt.timedelta(days=i)).isoformat() for i in range((e - b).days + 1)]
+    for sid, o in data.items():
+        got = [x['d'] for x in o['rows']]
+        if got != want:
+            falta = sorted(set(want) - set(got))[:5]
+            sobra = sorted(set(got) - set(want))[:5]
+            raise Fail('%s, loja %s: dias não conferem com o pedido (faltam %s, sobram %s)' % (label, sid, falta, sobra))
+        rows, sm = o['rows'], o['summary']
+        pairs = [('groups', sum(x['g'] for x in rows), sm.get('total_visitor_groups'), 0),
+                 ('vendas', sum(x['n'] for x in rows), sm.get('total_sales_count'), 0),
+                 ('itens', sum(x['i'] for x in rows), sm.get('total_items'), 0),
+                 ('receita', round(sum(x['r'] for x in rows), 2), sm.get('total_revenue'), TOL_REV)]
+        for nm, mine, theirs, tol in pairs:
+            if theirs is None or abs(mine - theirs) > tol:
+                raise Fail('%s, loja %s: soma dos dias (%s) não bate com o resumo da AlterVision (%s) em %s' % (label, sid, mine, theirs, nm))
+        for x in rows:
+            if x['g'] < 0 or x['r'] != x['r'] or abs(x['r']) > 1e7 or x['i'] < -50 or not (0 <= float(x['u']) <= 100.0001):
+                raise Fail('%s, loja %s, %s: linha com valor fora do padrão %s' % (label, sid, x['d'], x))
+        dv = derive(rows)
+        cv = sm.get('average_conversion_rate_percent')
+        if cv is not None:
+            dif = abs(dv['conv'] - cv)
+            if dif > TOL_CONV_ERR:
+                raise Fail('%s, loja %s: conversão calculada %.1f%% difere da AlterVision %.1f%%' % (label, sid, dv['conv'], cv))
+            if dif > TOL_CONV_WARN:
+                warns.append('%s, loja %s: conversão calculada %.1f%% vs AlterVision %.1f%%' % (label, sid, dv['conv'], cv))
+        up = sm.get('average_uptime_percent')
+        if up is not None and abs(dv['uptime'] - up) > 0.15:
+            warns.append('%s, loja %s: uptime calculado %.2f vs AlterVision %.2f' % (label, sid, dv['uptime'], up))
+
+
+def read_market(path, month):
+    """Aceita a resposta bruta do market_data (lista de segmentos) ou um resumo compacto:
+    {"bij_rua": {"rev": [min25, mediana, top25], "flow": [...], "conv": [...], "revYoY": [...], "flowYoY": [...]}, "bij_shopping": ..., "joi_rua": ..., "joi_shopping": ...}
+    (rev/flow/revYoY/flowYoY = previousMonth.revenue, previousMonth.flowGroup, previousYear.revenue, previousYear.flowGroup; conv = previousMonth.conversionGroup;
+     use null nos três valores quando a AlterVision devolver null)."""
+    v = load_any(path)
+    if isinstance(v, dict) and 'data' in v:
+        v = v['data']
+    out = {}
+    if isinstance(v, dict):
+        for c, rec in v.items():
+            out[c] = {nm: dict(min25=t[0], median=t[1], top25=t[2]) for nm, t in rec.items()}
+    elif isinstance(v, list):
+        for x in v:
+            seg = MARKET_SEGS.get(x.get('segmentName'))
+            if not seg or x.get('segmentTagName') not in ('rua', 'shopping'):
+                continue
+            if x.get('month') != month:
+                raise Fail('mercado: linha de %s em vez de %s' % (x.get('month'), month))
+            pm, py = x['previousMonth'], x['previousYear']
+            out[seg + '_' + x['segmentTagName']] = dict(rev=pm['revenue'], flow=pm['flowGroup'], conv=pm['conversionGroup'], revYoY=py['revenue'], flowYoY=py['flowGroup'])
+    else:
+        raise Fail('mercado %s: resposta inesperada' % month)
+    if set(out) != {'bij_rua', 'bij_shopping', 'joi_rua', 'joi_shopping'}:
+        raise Fail('mercado %s: segmentos incompletos (%s)' % (month, sorted(out)))
+    for c, rec in out.items():
+        if set(rec) != {'rev', 'flow', 'conv', 'revYoY', 'flowYoY'}:
+            raise Fail('mercado %s %s: indicadores incompletos %s' % (month, c, sorted(rec)))
+        for nm, t in rec.items():
+            vals = [t.get(q) for q in ('min25', 'median', 'top25')]
+            if all(x is None for x in vals) and nm in ('revYoY', 'flowYoY'):
+                continue                                  # a AlterVision não tem base do ano anterior para este segmento
+            lim = (0, 1) if nm == 'conv' else (-1.5, 5)
+            if any((not isinstance(x, (int, float))) or not lim[0] <= x <= lim[1] for x in vals):
+                raise Fail('mercado %s %s.%s fora do padrão: %s' % (month, c, nm, vals))
+            if not (vals[0] <= vals[1] + 5e-4 and vals[1] <= vals[2] + 5e-4):
+                raise Fail('mercado %s %s.%s: quartis fora de ordem %s' % (month, c, nm, vals))
+    return out
+
+
+def read_sellers(path, D, months):
+    """Aceita a resposta bruta de get_metrics_from_sellers ({"data":[...]}) ou um resumo compacto
+    [[idDaLoja, "Nome da vendedora", receita, vendas, itens], ...] (só linhas com nome).
+    Ticket, PA e preço médio são recalculados; a soma por loja é conferida com os totais mensais das lojas."""
+    v = load_any(path)
+    rows = v['data'] if isinstance(v, dict) and 'data' in v else v
+    sel = []
+    for x in rows:
+        if isinstance(x, dict):
+            if not x.get('sellerName'):
+                continue
+            sid, name, rev, sales, items = x['storeId'], x['sellerName'], x['revenue'], x['sales'], x['items']
+        else:
+            sid, name, rev, sales, items = x
+        if sid not in D['order']:
+            raise Fail('vendedora em loja fora do cadastro: %s' % sid)
+        if not isinstance(name, str) or not name.strip():
+            raise Fail('vendedora sem nome na loja %s' % sid)
+        sel.append(dict(store=sid, name=name, rev=round(float(rev), 2), sales=int(sales), items=int(items),
+                        ticket=round(rev / sales, 2) if sales else 0, upt=round(items / sales, 3) if sales else 0,
+                        price=round(rev / items, 2) if items else 0))
+    if len(sel) < 20:
+        raise Fail('vendedoras: só %d registros (esperado dezenas)' % len(sel))
+    for s in D['order']:
+        mine = [x for x in sel if x['store'] == s]
+        tot = dict(sales=sum(D['monthly'][str(s)][m]['sales'] for m in months), items=sum(D['monthly'][str(s)][m]['items'] for m in months),
+                   rev=sum(D['monthly'][str(s)][m]['revenue'] for m in months))
+        if sum(x['sales'] for x in mine) != tot['sales'] or sum(x['items'] for x in mine) != tot['items'] or abs(sum(x['rev'] for x in mine) - tot['rev']) > 0.5:
+            raise Fail('vendedoras da loja %s não somam o total da loja (vendas %s/%s, itens %s/%s, receita %.2f/%.2f)' % (
+                s, sum(x['sales'] for x in mine), tot['sales'], sum(x['items'] for x in mine), tot['items'], sum(x['rev'] for x in mine), tot['rev']))
+    return sel
+
+
+# ------------------------------------------------------------------ validação final dos dados
+def validate(D):
+    errs = []
+    MSk = [k for k in D['monthly'][str(D['order'][0])]]
+    first = dt.date(D['y0'], D['m0'], 1)
+    asof = d2(D['asOf'])
+    for s in D['order']:
+        s = str(s)
+        days = D['daily'][s]
+        want = (asof - first).days + 1
+        if len(days) != want or days[0]['d'] != first.isoformat() or days[-1]['d'] != asof.isoformat():
+            errs.append('%s: diário não cobre %s a %s sem buracos (%d linhas, esperado %d)' % (s, first, asof, len(days), want))
+        if [x['d'] for x in days] != sorted(set(x['d'] for x in days)):
+            errs.append('%s: diário fora de ordem ou repetido' % s)
+        for k, M in D['monthly'][s].items():
+            for f, v in M.items():
+                if v is not None and (not isinstance(v, (int, float)) or v != v or math.isinf(v)):
+                    errs.append('%s %s.%s inválido: %r' % (s, k, f, v))
+        if set(D['monthly'][s]) != set(MSk):
+            errs.append('%s: meses diferentes das demais lojas' % s)
+        if set(D['inAvg'][s]) != set(MSk):
+            errs.append('%s: inAvg não cobre todos os meses' % s)
+    for k, p in D.get('partial', {}).items():
+        if k not in MSk:
+            errs.append('partial de mês inexistente %s' % k)
+        if not (1 <= p['days'] < p['dim']):
+            errs.append('partial %s com dias inválidos %r' % (k, p))
+    for c, mm in D['market'].items():
+        for k in mm:
+            if k not in MSk:
+                errs.append('mercado de mês inexistente %s/%s' % (c, k))
+    for k in D.get('sellersMonths', []):
+        if k not in MSk:
+            errs.append('vendedoras de mês inexistente %s' % k)
+    if errs:
+        raise Fail('validação final: ' + '; '.join(errs[:8]))
+
+
+# ------------------------------------------------------------------ aplicar
+def apply(args):
+    core, a, D, b = load_page(args.html)
+    old = json.loads(json.dumps(D))
+    today = d2(args.today) if args.today else today_sp()
+    plan = make_plan(D, today, MIN_DAYS if args.min_days is None else args.min_days)
+    report = dict(plan=plan, changes=[], warnings=[], market=[], sellers=None)
+    warns = report['warnings']
+    # --- diário (uma consulta; cada mês tocado é refeito)
+    files = list(args.daily or [])
+    rng = plan['daily'][0]
+    if len(files) != 1:
+        raise Fail('o plano pede 1 consulta diária (%s a %s) e foram entregues %d arquivo(s)' % (rng['dateBegin'], rng['dateEnd'], len(files)))
+    label = 'diário %s a %s' % (rng['dateBegin'], rng['dateEnd'])
+    data = read_daily(files[0], D, label, warns)
+    check_daily(data, rng, D, label, warns)
+    s0 = str(D['order'][0])
+    stored0 = set(D['monthly'][s0])
+    part0 = set(D.get('partial', {}))
+    for sid, o in data.items():
+        s = str(sid)
+        before = {x['d']: x for x in D['daily'][s]}
+        rows_all = o['rows']
+        revised = [x['d'] for x in rows_all if x['d'] in before and before[x['d']] != x]
+        if revised:
+            report['changes'].append('%s: %d dia(s) revisado(s) pela AlterVision (%s…)' % (D['short'][s], len(revised), revised[0]))
+        keep = [x for x in D['daily'][s] if not (rng['dateBegin'] <= x['d'] <= rng['dateEnd'])]
+        D['daily'][s] = sorted(keep + rows_all, key=lambda z: z['d'])
+        for k in plan['months']:
+            yy, mm = month_ym(D, k)
+            pref = '%d-%02d' % (yy, mm)
+            rows = [x for x in D['daily'][s] if x['d'].startswith(pref)]
+            touched = (k not in stored0) or (k in part0) or any(d.startswith(pref) for d in revised)
+            if touched:
+                D['monthly'][s][k] = derive(rows)
+            if k not in D['inAvg'][s]:
+                fs = D['flowStart'].get(s)
+                D['inAvg'][s][k] = not (fs and fs > pref + '-01')
+    # partial / asOf
+    D['asOf'] = plan['newAsOf']
+    asof = d2(D['asOf'])
+    part = D.setdefault('partial', {})
+    part.clear()
+    k_last = MON[asof.month - 1]
+    if k_last in D['monthly'][s0] and asof.day < dim(asof.year, asof.month):
+        part[k_last] = dict(days=asof.day, dim=dim(asof.year, asof.month), asOf=D['asOf'])
+    # --- mercado
+    for it in plan['market']:
+        spec = [x for x in (args.market or []) if x.split('=', 1)[0] == it['month']]
+        if not spec:
+            report['market'].append('%s: sem arquivo (AlterVision ainda não publicou?), fica para a próxima rodada' % it['month'])
+            continue
+        try:
+            rec = read_market(spec[0].split('=', 1)[1], it['month'])
+        except Fail as e:
+            report['market'].append('%s: %s' % (it['month'], e))
+            continue
+        for c, v in rec.items():
+            D['market'].setdefault(c, {})[it['key']] = v
+        report['market'].append('%s: incluído' % it['month'])
+    # --- vendedoras
+    if plan['sellers']:
+        if args.sellers:
+            try:
+                D['sellers'] = read_sellers(args.sellers, D, plan['sellers']['months'])
+                D['sellersMonths'] = plan['sellers']['months']
+                report['sellers'] = 'atualizadas para %s (%d registros)' % ('–'.join([plan['sellers']['months'][0], plan['sellers']['months'][-1]]), len(D['sellers']))
+            except Fail as e:
+                report['sellers'] = 'NÃO atualizadas: %s' % e
+        else:
+            report['sellers'] = 'NÃO atualizadas: sem arquivo'
+    validate(D)
+    new = dump_page(a, D, b)
+    if len(new.encode('utf-8')) > 15_000_000:
+        raise Fail('página maior que o limite')
+    open(args.out, 'w', encoding='utf-8').write(new)
+    report['out'] = args.out
+    report['bytes'] = len(new.encode('utf-8'))
+    report['summary'] = summarize(D, old)
+    return report
+
+
+def summarize(D, old):
+    s_new = [str(s) for s in D['order']]
+    k = MON[d2(D['asOf']).month - 1]
+    tot = sum(D['monthly'][s][k]['revenue'] for s in s_new if k in D['monthly'][s])
+    cs = sum(D['monthly'][s][k]['cs'] for s in s_new)
+    cg = sum(D['monthly'][s][k]['cg'] for s in s_new)
+    return dict(asOf=D['asOf'], months=[x for x in D['monthly'][s_new[0]] if x != MON[(D['m0'] + 10) % 12]], partial=D.get('partial', {}),
+                lastMonth=k, lastMonthRevenue=round(tot, 2), lastMonthConv=round(100 * cs / cg, 1) if cg else None,
+                previousAsOf=old['asOf'])
+
+
+# ------------------------------------------------------------------ teste de renderização
+BAD = ('NaN', 'undefined', 'Infinity', 'null', '[object')
+
+
+def smoke(path):
+    try:
+        from playwright.sync_api import sync_playwright
+    except Exception as e:
+        return dict(status='unavailable', detail=str(e)[:120])
+    core = unwrap(open(path, encoding='utf-8').read())
+    page = ('<!doc' + 'type html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+            '<style>[hidden]{display:none!important}body{margin:0}</style></head><body>' + core + '</body></html>')
+    fn = os.path.join(tempfile.gettempdir(), 'painel_smoke.html')
+    open(fn, 'w', encoding='utf-8').write(page)
+    issues, errs = [], []
+    with sync_playwright() as p:
+        br = p.chromium.launch()
+        pg = br.new_context(viewport={'width': 1280, 'height': 900}).new_page()
+        pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' and 'ERR_' not in m.text and 'fonts.g' not in m.text else None)
+        pg.on('pageerror', lambda e: errs.append('PAGEERR ' + str(e)))
+        pg.goto('file://' + fn)
+        pg.wait_for_timeout(800)
+
+        def scan(tag):
+            t = pg.evaluate('document.body.innerText')
+            h = pg.evaluate('["c2","c3","c4","c5","cal","heat","tbStores","tbMk","kpis"].map(i=>document.getElementById(i).innerHTML).join(" ")')
+            for w in BAD:
+                if w in t:
+                    issues.append((tag, 'texto', w, t[max(0, t.index(w) - 50):t.index(w) + 30].replace('\n', ' ')))
+                if w in h:
+                    issues.append((tag, 'gráfico', w, h[max(0, h.index(w) - 50):h.index(w) + 30]))
+        months = pg.eval_on_selector_all('#fMon button', 'els=>els.map(e=>e.dataset.v)')
+        stores = pg.eval_on_selector_all('#fStore option', 'els=>els.map(e=>e.value)')
+        scan('padrão')
+        nk = pg.eval_on_selector_all('#kpis .tile', 'els=>els.length')
+        if nk < 6:
+            issues.append(('padrão', 'kpis', nk, 'poucos indicadores'))
+        sub = pg.inner_text('#brandSub')
+        for st in stores:
+            pg.select_option('#fStore', st)
+            pg.wait_for_timeout(40)
+            scan('loja ' + st)
+        pg.select_option('#fStore', 'all')
+
+        def on(k):
+            return pg.get_attribute('#fMon button[data-v="%s"]' % k, 'aria-pressed') == 'true'
+        for sub_m in ([months[0]], [months[-1]], months):
+            for k in months:
+                if (k in sub_m) != on(k):
+                    pg.click('#fMon button[data-v="%s"]' % k)
+            for st in ('all', stores[len(stores) // 2]):
+                pg.select_option('#fStore', st)
+                pg.wait_for_timeout(40)
+                scan(('meses', tuple(sub_m), st))
+        for k in ('conv', 'ticket', 'upt', 'price', 'rev', 'flow', 'up'):
+            pg.click('#heatChips .chip[data-k="%s"]' % k)
+            scan(('calor', k))
+        for k in ('rev', 'flow', 'conv'):
+            pg.click('#calChips .chip[data-k="%s"]' % k)
+            scan(('calendário', k))
+        for seg in ('bij', 'joi'):
+            pg.click('#fSeg button[data-v="%s"]' % seg)
+            scan(('mercado', seg))
+        for bt in pg.query_selector_all('[data-twin]'):
+            bt.click()
+        scan('tabelas')
+        br.close()
+    return dict(status='ok' if not issues and not errs else 'fail', brandSub=sub, issues=[list(map(str, i)) for i in issues[:8]], errors=errs[:5])
+
+
+# ------------------------------------------------------------------ main
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('cmd', choices=['plan', 'apply', 'info', 'smoke'])
+    ap.add_argument('--html')
+    ap.add_argument('--out')
+    ap.add_argument('--daily', action='append')
+    ap.add_argument('--market', action='append')
+    ap.add_argument('--sellers')
+    ap.add_argument('--today')
+    ap.add_argument('--min-days', type=int)
+    a = ap.parse_args()
+    try:
+        if a.cmd == 'plan':
+            _, _, D, _ = load_page(a.html)
+            r = make_plan(D, d2(a.today) if a.today else today_sp(), MIN_DAYS if a.min_days is None else a.min_days)
+        elif a.cmd == 'info':
+            _, _, D, _ = load_page(a.html)
+            r = dict(asOf=D['asOf'], partial=D.get('partial'), months=list(D['monthly'][str(D['order'][0])]), sellersMonths=D.get('sellersMonths'),
+                     market={k: list(v) for k, v in D['market'].items()}, minDays=MIN_DAYS)
+        elif a.cmd == 'smoke':
+            r = smoke(a.html)
+        else:
+            if not a.out:
+                raise Fail('--out obrigatório')
+            r = apply(a)
+        print(json.dumps(dict(ok=True, **r), ensure_ascii=False, indent=1))
+    except Fail as e:
+        print(json.dumps(dict(ok=False, error=str(e)), ensure_ascii=False, indent=1))
+        sys.exit(2)
+
+
+if __name__ == '__main__':
+    main()
+</script>
+
+</body></html>
